@@ -1,0 +1,20 @@
+[
+ {"q": "Can my phone company cut me off if I'm late paying my bill?", "a": ["45"]},
+ {"q": "Who decides whether a telecom company is too dominant in the market?", "a": ["23"]},
+ {"q": "Do I need anyone's permission to sell my telecom company?", "a": ["14"]},
+ {"q": "Is anyone allowed to listen to or record my phone calls?", "a": ["50"]},
+ {"q": "Who pays to fix my line if the problem was my fault?", "a": ["47"]},
+ {"q": "For how long is a licence extended when it is renewed?", "a": ["13"]},
+ {"q": "What happens if two operators can't agree on connecting their networks?", "a": ["38"]},
+ {"q": "Where can I complain if my operator breaks the rules?", "a": ["59"]},
+ {"q": "Which offences can the regulator punish?", "a": ["61"]},
+ {"q": "Is the phone company allowed to tell others who I call?", "a": ["49"]},
+ {"q": "Կարո՞ղ է որևէ մեկը լսել կամ ձայնագրել իմ հեռախոսազանգերը", "a": ["50"]},
+ {"q": "Ո՞վ է որոշում, որ ընկերությունը շուկայում գերիշխող է", "a": ["23"]},
+ {"q": "Եթե ուշացնեմ վճարումը, կարո՞ղ են անջատել իմ կապը", "a": ["45"]},
+ {"q": "Որտե՞ղ կարող եմ բողոքել, եթե օպերատորը խախտում է օրենքը", "a": ["59"]},
+ {"q": "Ովքե՞ր պետք է վճարեն համընդհանուր ծառայությունների ֆոնդին", "a": ["40"]},
+ {"q": "Կարո՞ղ եմ ցանցին միացնել ցանկացած հեռախոս կամ մոդեմ", "a": ["44"]},
+ {"q": "Ինչպե՞ս է ընտրվում, թե ով կստանա սահմանափակ ռադիոհաճախականություններ", "a": ["10"]},
+ {"q": "Ի՞նչ է լինում, եթե Կարգավորողի որոշումը դատարանում բողոքարկվում է", "a": ["58"]}
+]

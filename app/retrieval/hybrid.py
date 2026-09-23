@@ -20,6 +20,10 @@ from rank_bm25 import BM25Okapi
 from app.retrieval.embeddings import DenseIndex, load_chunks
 
 RRF_K = 60
+# Fusion weights per ranked list (dense-hy, dense-en each W_DENSE; BM25 W_BM25), chosen on the
+# paraphrase dev set eval/retrieval_dev.json, not on the benchmark questions.
+W_DENSE = 1.0
+W_BM25 = 1.0
 STEM_LEN = 6
 TOKEN_RE = re.compile(r"\w+", re.UNICODE)
 ARMENIAN_RE = re.compile(r"[Ա-֏]")
@@ -70,6 +74,9 @@ class HybridRetriever:
         self.articles = {c["article"] for c in self.chunks}
         self.lang_articles = {lang: {self.chunks[i]["article"] for i in idx} for lang, idx in self.by_lang.items()}
 
+    def _article_order(self, chunk_ids: list[int]) -> list[str]:
+        return list(dict.fromkeys(self.chunks[i]["article"] for i in chunk_ids))
+
     def _bm25(self, query: str, lang: str, k: int) -> list[int]:
         scores = self.bm25[lang].get_scores(tokenize(query))
         idx = self.by_lang[lang]
@@ -79,36 +86,29 @@ class HybridRetriever:
     def retrieve(self, query: str, top_k: int = 5, pool: int = 30) -> RetrievalResult:
         lang = detect_lang(query)
         dense = [i for i, _ in self.dense.search(query, k=pool * 2)]
-        ranked_lists = [
-            [i for i in dense if self.chunks[i]["lang"] == "hy"][:pool],
-            [i for i in dense if self.chunks[i]["lang"] == "en"][:pool],
-            self._bm25(query, lang, pool),
-        ]
+        dense_hy = [i for i in dense if self.chunks[i]["lang"] == "hy"][:pool]
+        dense_en = [i for i in dense if self.chunks[i]["lang"] == "en"][:pool]
+        ranked_lists = [(W_DENSE, dense_hy), (W_DENSE, dense_en), (W_BM25, self._bm25(query, lang, pool))]
 
-        # RRF at article level: in each list an article counts once, at its best-ranked chunk.
+        # Weighted RRF at article level: each list is first collapsed to an article ranking
+        # (an article counts once, at its best chunk), so long articles are not favoured.
         scores: dict[str, float] = {}
         chunk_rank: dict[str, dict[str, float]] = {}
-        for lst in ranked_lists:
-            seen: set[str] = set()
-            for rank, i in enumerate(lst):
+        for weight, lst in ranked_lists:
+            for rank, a in enumerate(self._article_order(lst)):
+                scores[a] = scores.get(a, 0) + weight / (RRF_K + rank + 1)
+            for pos, i in enumerate(lst):
                 c = self.chunks[i]
-                contrib = 1.0 / (RRF_K + rank + 1)
                 chunk_rank.setdefault(c["article"], {})
-                chunk_rank[c["article"]][c["id"]] = chunk_rank[c["article"]].get(c["id"], 0) + contrib
-                if c["article"] not in seen:
-                    seen.add(c["article"])
-                    scores[c["article"]] = scores.get(c["article"], 0) + contrib
+                chunk_rank[c["article"]][c["id"]] = chunk_rank[c["article"]].get(c["id"], 0) + 1.0 / (RRF_K + pos + 1)
 
         # An article present in only one version (Article 17.1 is only in the English text) can
         # appear in just one of the two dense lists; give it the same contribution in the other,
         # otherwise it is structurally outranked by articles that exist in both languages.
-        for list_lang, other_list in (("hy", ranked_lists[1]), ("en", ranked_lists[0])):
-            seen_other: set[str] = set()
-            for rank, i in enumerate(other_list):
-                a = self.chunks[i]["article"]
-                if a not in seen_other and a not in self.lang_articles[list_lang]:
-                    scores[a] = scores.get(a, 0) + 1.0 / (RRF_K + rank + 1)
-                seen_other.add(a)
+        for list_lang, other_list in (("hy", dense_en), ("en", dense_hy)):
+            for rank, a in enumerate(self._article_order(other_list)):
+                if a not in self.lang_articles[list_lang]:
+                    scores[a] = scores.get(a, 0) + W_DENSE / (RRF_K + rank + 1)
 
         forced = [n for n in dict.fromkeys(ARTICLE_REF_RE.findall(query)) if n in self.articles]
         order = forced + [a for a in sorted(scores, key=lambda a: -scores[a]) if a not in forced]
