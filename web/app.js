@@ -105,4 +105,110 @@ $("#answer").addEventListener("click", (e) => {
   setTimeout(() => el.classList.remove("flash"), 1200);
 });
 
+// ---------------- Benchmark tab ----------------
+const METRICS = [
+  ["answer_accuracy", "Answer accuracy (all)", "pct"],
+  ["accuracy_hy", "  · Armenian questions", "pct"],
+  ["accuracy_en", "  · English questions", "pct"],
+  ["accuracy_adversarial", "  · Adversarial", "pct"],
+  ["citation_f1", "Citation F1 (answerable)", "pct"],
+  ["citation_precision", "Citation precision", "pct"],
+  ["citation_recall", "Citation recall", "pct"],
+  ["hallucination_rate", "Hallucination rate", "pct"],
+  ["refusal_on_out_of_scope", "Refuses out-of-scope", "pct"],
+  ["false_refusal_on_answerable", "False refusals", "pct"],
+  ["ttft_p50_s", "TTFT p50 (s)", "num"],
+  ["ttft_p95_s", "TTFT p95 (s)", "num"],
+  ["total_p50_s", "Total time p50 (s)", "num"],
+  ["total_p95_s", "Total time p95 (s)", "num"],
+  ["prompt_tokens_avg", "Prompt tokens (avg)", "int"],
+  ["completion_tokens_avg", "Completion tokens (avg)", "int"],
+  ["cost_usd_per_1k_questions", "Cost / 1k questions (USD, paid rates)", "usd"],
+  ["cost_usd_total", "Cost of this run (USD)", "usd5"],
+  ["failure_rate", "Failure rate", "pct"],
+  ["failures", "Failures by type", "obj"],
+  ["retries", "Retries", "int"],
+  ["judge_errors", "Judge errors", "int"],
+];
+function fmt(v, kind) {
+  if (v == null) return "–";
+  if (kind === "pct") return (100 * v).toFixed(1) + "%";
+  if (kind === "num") return (+v).toFixed(2);
+  if (kind === "int") return Math.round(v).toLocaleString();
+  if (kind === "usd") return "$" + (+v).toFixed(3);
+  if (kind === "usd5") return "$" + (+v).toFixed(5);
+  if (kind === "obj") return Object.entries(v).map(([k, n]) => `${k}: ${n}`).join(", ") || "none";
+  return v;
+}
+function renderSummary(summary) {
+  if (!summary.length) { $("#benchSummary").textContent = "No results."; return; }
+  const head = `<tr><th>Metric</th>${summary.map((s) => `<th>${s.model}<br><span class="muted">${esc(s.provider_model)}</span></th>`).join("")}</tr>`;
+  const body = METRICS.map(([k, label, kind]) =>
+    `<tr><td>${label.replace(/^  /, "&nbsp;&nbsp;")}</td>${summary.map((s) => `<td class="num">${fmt(s[k], kind)}</td>`).join("")}</tr>`).join("");
+  $("#benchSummary").innerHTML = `<table>${head}${body}</table>`;
+}
+function renderRows(rows) {
+  const r = [...rows].sort((a, b) => a.qid.localeCompare(b.qid) || a.model.localeCompare(b.model));
+  $("#benchRows").innerHTML = `<table><tr><th>Q</th><th>Model</th><th>Score</th><th>Halluc.</th><th>Cited</th><th>Retrieved</th><th>TTFT</th><th>Answer</th></tr>` +
+    r.map((x) => `<tr><td>${x.qid}</td><td>${x.model}</td>
+      <td class="num ${x.correctness === 1 ? "ok" : x.correctness === 0 ? "fail" : ""}">${x.error ? `<span class="fail">${x.error}</span>` : fmt(x.correctness)}</td>
+      <td>${x.hallucination == null ? "–" : x.hallucination ? '<span class="fail">yes</span>' : "no"}</td>
+      <td>${x.citations.join(", ")}</td><td class="muted">${x.retrieved_articles.join(", ")}</td>
+      <td class="num">${fmt(x.ttft_s, "num")}</td>
+      <td><details><summary>${esc((x.answer || "").slice(0, 60))}…</summary><pre>${esc(x.answer || "")}</pre>
+        ${x.judge_rationale ? `<p class="muted">Judge: ${esc(x.judge_rationale)}</p>` : ""}</details></td></tr>`).join("") + "</table>";
+}
+async function loadRuns(select) {
+  const runs = await (await fetch("/api/benchmark/runs")).json();
+  $("#runs").innerHTML = `<option value="">—</option>` + runs.map((r) => `<option>${r}</option>`).join("");
+  if (select && runs.includes(select)) $("#runs").value = select;
+  else if (!select && runs.length) $("#runs").value = runs[0];
+  if ($("#runs").value) showRun($("#runs").value);
+}
+async function showRun(name) {
+  const data = await (await fetch("/api/benchmark/runs/" + encodeURIComponent(name))).json();
+  $("#runMeta").textContent = `(run ${name}, judge: ${data.meta.judge_model || "?"}, ${data.rows.length} answers)`;
+  renderSummary(data.summary);
+  renderRows(data.rows);
+}
+$("#runs").addEventListener("change", (e) => e.target.value && showRun(e.target.value));
+
+async function runBenchmark() {
+  const models = [...document.querySelectorAll(".benchModel:checked")].map((c) => c.value);
+  if (!models.length) return;
+  const limit = +$("#benchLimit").value || null;
+  $("#benchBtn").disabled = true;
+  const cells = {};
+  let t0 = Date.now(), outDir = "";
+  try {
+    await postStream("/api/benchmark", { models, limit }, (ev) => {
+      if (ev.type === "start") {
+        outDir = ev.out_dir.split("/").pop();
+        $("#benchStatus").textContent = `Retrieving context for ${ev.n_questions} questions…`;
+        $("#benchProgress").innerHTML = models.map((m) => `<div><b>${m}</b> <span id="prog-${m}"></span></div>`).join("");
+      } else if (ev.type === "retrieval_done") {
+        $("#benchStatus").textContent = "Querying models (paced to free-tier limits)…";
+      } else if (ev.type === "progress") {
+        cells[ev.model] = (cells[ev.model] || 0) + 1;
+        const mark = ev.error ? `<span class="fail" title="${ev.error}">✗</span>` : ev.correctness === 1 ? '<span class="ok">●</span>' : ev.correctness === 0 ? '<span class="fail">●</span>' : "◐";
+        document.getElementById("prog-" + ev.model).innerHTML += mark;
+        $("#benchStatus").textContent = `Running… ${Math.round((Date.now() - t0) / 1000)}s`;
+      } else if (ev.type === "summary") {
+        $("#benchStatus").textContent = `Done in ${Math.round((Date.now() - t0) / 1000)}s`;
+        loadRuns(outDir);
+      }
+    });
+  } catch (e) {
+    $("#benchStatus").innerHTML = `<span class="error">${esc(String(e))}</span>`;
+  } finally {
+    $("#benchBtn").disabled = false;
+  }
+}
+$("#benchBtn").addEventListener("click", runBenchmark);
+document.addEventListener("models-loaded", () => {
+  $("#benchModels").innerHTML = MODELS.map((m) =>
+    `<label><input type="checkbox" class="benchModel" value="${m.key}" ${m.available ? "checked" : "disabled"}> ${m.provider} ${esc(m.model)}</label>`).join(" ");
+});
+
 loadModels();
+loadRuns();

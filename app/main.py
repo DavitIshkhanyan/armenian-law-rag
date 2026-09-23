@@ -13,7 +13,8 @@ from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from app.config import BENCHMARK_MODELS, MODELS, ROOT
+from app.config import BENCHMARK_MODELS, MODELS, RESULTS_DIR, ROOT
+from app.eval import run_benchmark
 from app.rag.pipeline import TOP_K, answer
 from app.retrieval.hybrid import get_retriever
 
@@ -56,6 +57,37 @@ def ask(req: AskRequest) -> StreamingResponse:
     if req.model not in BENCHMARK_MODELS:
         raise HTTPException(400, f"unknown model {req.model}")
     return sse(answer(req.question.strip(), req.model, req.top_k))
+
+
+class BenchmarkRequest(BaseModel):
+    models: list[str] = Field(default_factory=lambda: list(BENCHMARK_MODELS))
+    limit: int | None = Field(default=None, ge=1)
+
+
+@app.post("/api/benchmark")
+def benchmark(req: BenchmarkRequest) -> StreamingResponse:
+    unknown = [m for m in req.models if m not in BENCHMARK_MODELS]
+    if unknown or not req.models:
+        raise HTTPException(400, f"unknown or empty models: {unknown}")
+    return sse(run_benchmark.run(req.models, req.limit))
+
+
+@app.get("/api/benchmark/runs")
+def benchmark_runs() -> list[str]:
+    if not RESULTS_DIR.exists():
+        return []
+    return sorted((d.name for d in RESULTS_DIR.iterdir() if (d / "summary.json").exists()), reverse=True)
+
+
+@app.get("/api/benchmark/runs/{name}")
+def benchmark_run(name: str) -> dict:
+    d = RESULTS_DIR / name
+    if not name.replace("-", "").isalnum() or not (d / "summary.json").exists():
+        raise HTTPException(404, "run not found")
+    raw = [json.loads(line) for line in (d / "raw.jsonl").read_text(encoding="utf-8").splitlines() if line]
+    meta = json.loads((d / "meta.json").read_text()) if (d / "meta.json").exists() else {}
+    return {"name": name, "meta": meta, "summary": json.loads((d / "summary.json").read_text(encoding="utf-8")),
+            "rows": raw}
 
 
 @app.get("/")

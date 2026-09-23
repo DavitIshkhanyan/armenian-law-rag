@@ -42,7 +42,22 @@
   </section>
 
   <section id="bench" class="panel">
-    <p class="muted">Benchmark coming soon.</p>
+    <p class="muted">Runs the ground-truth set (eval/questions.json) through the same RAG pipeline for each model.
+      Retrieval is done once per question, so every model gets an identical prompt. Answers are scored by a separate judge model.</p>
+    <div class="row">
+      <span id="benchModels"></span>
+      <label>Questions <input id="benchLimit" type="number" min="1" placeholder="all"></label>
+      <button id="benchBtn" class="primary">Run benchmark</button>
+      <span id="benchStatus" class="muted"></span>
+    </div>
+    <div class="row">
+      <label>Saved runs <select id="runs"><option value="">—</option></select></label>
+    </div>
+    <div id="benchProgress"></div>
+    <h2>Results <span class="muted" id="runMeta"></span></h2>
+    <div id="benchSummary" class="muted">Run the benchmark or pick a saved run.</div>
+    <h2>Per-question results</h2>
+    <div id="benchRows"></div>
   </section>
 </main>
 
