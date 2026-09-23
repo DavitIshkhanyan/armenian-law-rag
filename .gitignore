@@ -1,0 +1,24 @@
+# Source documents provided locally (not committed)
+Take-Home Task.docx
+elektr_com_en.pdf
+ՀՀ ՕՐԵՆՔԸ ԷԼԵԿՏՐՈՆԱՅԻՆ ՀԱՂՈՐԴԱԿՑՈՒԹՅԱՆ ՄԱՍԻՆ.pdf
+data/raw/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# Secrets
+.env
+
+# Caches
+data/cache/
+.cache/
+
