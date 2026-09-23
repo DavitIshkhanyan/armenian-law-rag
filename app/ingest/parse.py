@@ -154,7 +154,11 @@ def parse(lang: str) -> list[Article]:
         if m := section_re.match(ln):
             section = m.group(1)
             i += 1
-            prev_text = ln
+            # The section title (upper-case lines) follows; it must not end up in an article body.
+            while i < len(lines) and not header.match(lines[i]) and (not lines[i] or lines[i].isupper()):
+                if lines[i]:
+                    prev_text = lines[i]
+                i += 1
             continue
         m = header.match(ln)
         if m and (not prev_text or prev_text.endswith(SENTENCE_END) or prev_text == chapter_title or prev_text.isupper()):
