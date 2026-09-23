@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Electronic Communications Law Assistant</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header>
+  <h1>RA Law on Electronic Communications — Assistant</h1>
+  <nav>
+    <button class="tab active" data-tab="ask">Ask</button>
+    <button class="tab" data-tab="bench">Benchmark</button>
+  </nav>
+</header>
+
+<main>
+  <section id="ask" class="panel active">
+    <div class="row">
+      <label>Model <select id="model"></select></label>
+      <label>Top-k articles <input id="topk" type="number" min="1" max="10" value="5"></label>
+    </div>
+    <textarea id="question" rows="3" placeholder="Ask in Armenian or English… / Հարցրեք հայերեն կամ անգլերեն…"></textarea>
+    <div class="row">
+      <button id="askBtn">Ask</button>
+      <span class="examples">Examples:
+        <a href="#" class="ex">Ի՞նչ դեպքերում կարող է օպերատորը բացահայտել հաճախորդի տեղեկությունները</a> ·
+        <a href="#" class="ex">How many days' notice must a provider give before suspending a subscriber's service?</a> ·
+        <a href="#" class="ex">What are the GDPR requirements for storing customer data?</a>
+      </span>
+    </div>
+
+    <div id="answerBox" class="hidden">
+      <h2>Answer</h2>
+      <div id="answer"></div>
+      <div id="citations"></div>
+      <div id="stats" class="muted"></div>
+      <h2>Retrieved articles <span class="muted" id="retrMeta"></span></h2>
+      <div id="sources"></div>
+    </div>
+  </section>
+
+  <section id="bench" class="panel">
+    <p class="muted">Benchmark coming soon.</p>
+  </section>
+</main>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
