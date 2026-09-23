@@ -1,0 +1,149 @@
+[
+  {
+    "id": "hy-01", "lang": "hy", "type": "factual", "category": "answerable_hy",
+    "question": "Ի՞նչ դեպքերում կարող է օպերատորը բացահայտել հաճախորդի մասին գաղտնի տեղեկությունները։",
+    "expected_answer": "Օպերատորը կամ ծառայություններ մատուցողը կարող է բացահայտել տեղեկությունները՝ 1) օրենքով նախատեսված դեպքերում և կարգով՝ քրեական հանցագործության կամ ազգային անվտանգության սպառնալիքի հետախուզման, հետաքննման կամ քրեական հետապնդման առնչությամբ, 2) հաճախորդի գրավոր համաձայնությամբ, 3) եթե բացահայտումն անհրաժեշտ է օպերատորի պաշտպանության համար (նրա դեմ վարույթ է ընթանում). հաճախորդը կարող է պահանջել դռնփակ վարույթ։ Այդ բացահայտման համար օպերատորը պատասխանատվություն չի կրում։",
+    "key_facts": ["criminal offence / national security cases provided by law", "written consent of the customer", "defence of the operator in proceedings against it"],
+    "expected_articles": ["49"], "acceptable_articles": ["50"]
+  },
+  {
+    "id": "hy-02", "lang": "hy", "type": "factual", "category": "answerable_hy",
+    "question": "Որքա՞ն ժամկետում կարող է շահագրգիռ անձը միջնորդել Կարգավորողին վերանայել իր որոշումը, և որքա՞ն ժամկետում Կարգավորողը պետք է որոշում կայացնի։",
+    "expected_answer": "Որոշման հրապարակումից հետո 30 օրվա ընթացքում կարելի է միջնորդել վերանայում։ Կարգավորողը պարտավոր է միջնորդության ներկայացումից հետո 180 օրվա ընթացքում հաստատել, փոփոխել կամ ուժը կորցրած ճանաչել որոշումը։ Վերանայման միջնորդությունը դատական բողոքարկման պարտադիր նախապայման չէ։",
+    "key_facts": ["30 days after publication of the decision", "Regulator decides within 180 days"],
+    "expected_articles": ["57"], "acceptable_articles": ["58"]
+  },
+  {
+    "id": "hy-03", "lang": "hy", "type": "factual", "category": "answerable_hy",
+    "question": "Ինչ չափի տուգանք կարող է նշանակել Կարգավորողը լիցենզավորված իրավաբանական անձին սույն օրենքի դրույթները չկատարելու համար։",
+    "expected_answer": "Նվազագույն աշխատավարձի առնվազն 2000-ապատիկից մինչև 4000-ապատիկի չափով տույժ կամ տուգանք։ Եթե խախտումը կատարվել է դիտավորյալ կամ իմացությամբ, կամ մեկ տարվա ընթացքում մեկից ավելի անգամ, կարող է նշանակվել լրացուցիչ տույժ կամ տուգանք՝ նվազագույն աշխատավարձի 4000-ապատիկի չափով։",
+    "key_facts": ["at least 2000-fold of minimum salary", "not more than 4000-fold", "additional 4000-fold if intentional or repeated within one year"],
+    "expected_articles": ["63"], "acceptable_articles": ["61"]
+  },
+  {
+    "id": "hy-04", "lang": "hy", "type": "factual", "category": "answerable_hy",
+    "question": "Ի՞նչ պայմանների դեպքում Կարգավորողը կարող է երկարաձգել լիցենզիայի գործողության ժամկետը։",
+    "expected_answer": "Լիցենզավորված անձի դիմումի հիման վրա, նախկին լիցենզիայի ժամկետի տևողությամբ, եթե անձը գործել է սկզբնական լիցենզիայի պայմանների շրջանակում և ժամկետի ընթացքում չի էականորեն խախտել օրենքը և դրա հիման վրա ընդունված կանոնները։ Երկարաձգելիս Կարգավորողը կարող է փոփոխել պայմանները կամ սահմանել լրացուցիչ պայմաններ և պահանջել սկզբնական վճարից ոչ պակաս վճար։",
+    "key_facts": ["upon application, for the same period as the original licence", "operated within the conditions of the original licence", "no significant violation of the law or rules", "fee not less than the original fee may be required"],
+    "expected_articles": ["13"], "acceptable_articles": []
+  },
+  {
+    "id": "hy-05", "lang": "hy", "type": "factual", "category": "answerable_hy",
+    "question": "Ո՞վ է կրում ցանցի անսարքության վերանորոգման ծախսերը։",
+    "expected_answer": "Վերանորոգման ծախսերը կրում է վերջնական օգտագործողը, եթե վերանորոգման անհրաժեշտություն առաջացրած անսարքությունն առաջացել է իր մեղքով։ Օպերատորները պարտավոր են ողջամիտ ժամկետում վերականգնել ծառայությունը։",
+    "key_facts": ["end-user pays if the impairment is the end-user's fault"],
+    "expected_articles": ["47"], "acceptable_articles": []
+  },
+  {
+    "id": "hy-06", "lang": "hy", "type": "factual", "category": "answerable_hy",
+    "question": "Կարո՞ղ են սիրողական ռադիոկայանները օգտագործվել հեռարձակման նպատակով։",
+    "expected_answer": "Ոչ։ Սիրողական ռադիոկայանները չեն կարող օգտագործվել հեռարձակման նպատակով։",
+    "key_facts": ["no, amateur radio stations may not be used for broadcasting"],
+    "expected_articles": ["21"], "acceptable_articles": []
+  },
+  {
+    "id": "hy-07", "lang": "hy", "type": "factual", "category": "answerable_hy",
+    "question": "Ի՞նչ իրավունքներ ունեն վերջնական օգտագործողները այս օրենքով։",
+    "expected_answer": "Հավասար հիմունքներով օգտվել հանրային էլեկտրոնային հաղորդակցության ծառայություններից, ստանալ մանրամասն հաշիվ-ապրանքագրեր, հրաժարվել սակագնով կամ պայմանագրով չնշված ծառայությունների դիմաց վճարելուց, էլեկտրոնային հաղորդակցության գաղտնիության իրավունք, և օրենքով նախատեսված այլ իրավունքներ։",
+    "key_facts": ["equal access to public services", "detailed invoices", "refuse to pay for services not in tariff or contract", "confidentiality of communications"],
+    "expected_articles": ["55"], "acceptable_articles": ["49"]
+  },
+  {
+    "id": "en-01", "lang": "en", "type": "factual", "category": "answerable_en",
+    "question": "How much notice must a service provider give a subscriber before restricting or suspending their service, and are there exceptions?",
+    "expected_answer": "At least five business days' notice, given through the public electronic communications network or in writing if that is not possible, stating the duration of and reasons for the restriction or suspension. No notice is required where immediate restriction or suspension is necessary because the subscriber connected non-certified terminal equipment or equipment that is incompatible or interferes with the network (part 1(2) and (3)).",
+    "key_facts": ["at least five business days", "must state duration and reasons", "no notice needed for non-certified or interfering terminal equipment"],
+    "expected_articles": ["45"], "acceptable_articles": []
+  },
+  {
+    "id": "en-02", "lang": "en", "type": "factual", "category": "answerable_en",
+    "question": "How is the radio frequency allocation fee paid when obtaining a radio frequency authorisation?",
+    "expected_answer": "1% of the radio frequency (spectrum) allocation fee is paid before the authorisation is issued and 99% within ten business days after the Regulator adopts the decision to issue it. If the 99% is not paid in time, the Regulator may repeal its decision. Fee rates are set in an annex to the annual State Budget law on the Regulator's recommendation.",
+    "key_facts": ["1% before issuance", "99% within ten business days after the decision", "Regulator may repeal the decision if not paid"],
+    "expected_articles": ["17.1"], "acceptable_articles": ["17"]
+  },
+  {
+    "id": "en-03", "lang": "en", "type": "factual", "category": "answerable_en",
+    "question": "When does a regulated tariff filed with the Regulator become effective, and for how long can the Regulator suspend it?",
+    "expected_answer": "A regulated tariff becomes effective upon the Regulator's approval, or upon expiry of the 45th day after filing if the Regulator does not object. If the Regulator, after public consultation, finds the tariff would violate the Law, it may modify it or suspend it (or part of it) for up to 90 days while it investigates.",
+    "key_facts": ["effective upon approval", "or after the 45th day following filing absent objection", "suspension up to 90 days"],
+    "expected_articles": ["28"], "acceptable_articles": ["27"]
+  },
+  {
+    "id": "en-04", "lang": "en", "type": "factual", "category": "answerable_en",
+    "question": "What are the procedural deadlines when an interconnection dispute is referred to the Regulator?",
+    "expected_answer": "A party may refer the dispute if negotiations have not produced an agreement within two months (or if a dispute arises after agreement). The Regulator must notify the operator complained against within ten days; the operator must submit a written explanation within thirty days of the request; the Regulator must grant or reject the complaint within two months of receiving it. Networks must stay connected during the dispute.",
+    "key_facts": ["two months of failed negotiations", "Regulator notifies within ten days", "operator replies within thirty days", "decision within two months"],
+    "expected_articles": ["38"], "acceptable_articles": ["33", "35"]
+  },
+  {
+    "id": "en-05", "lang": "en", "type": "factual", "category": "answerable_en",
+    "question": "What share of the incumbent operator's shares can its beneficial owner dispose of without the Regulator's prior consent?",
+    "expected_answer": "Up to 20% of the incumbent operator's shares may be transferred, sold, assigned or otherwise disposed of without the Regulator's prior consent.",
+    "key_facts": ["up to 20%"],
+    "expected_articles": ["14"], "acceptable_articles": []
+  },
+  {
+    "id": "en-06", "lang": "en", "type": "factual", "category": "answerable_en",
+    "question": "Within what time must the Regulator decide on an application to reserve a number or code?",
+    "expected_answer": "Within three months after the application and all necessary documents are filed, where the number series, identification or short code is not in use and no coordination with international organisations is required; within twelve months where the applicant has not submitted enough information for the Regulator to determine compliance with the conditions in part 2.",
+    "key_facts": ["three months in the standard case", "twelve months when information is insufficient"],
+    "expected_articles": ["42"], "acceptable_articles": ["41"]
+  },
+  {
+    "id": "en-07", "lang": "en", "type": "factual", "category": "answerable_en",
+    "question": "When did the Law on Electronic Communications enter into force, and which earlier law did it repeal?",
+    "expected_answer": "The Law enters into force on the tenth day following its official publication. It repealed the Law of the Republic of Armenia 'On telecommunication' adopted on 17 February 1998.",
+    "key_facts": ["tenth day after official publication", "repeals the 1998 Law 'On telecommunication'"],
+    "expected_articles": ["67", "66"], "acceptable_articles": []
+  },
+  {
+    "id": "adv-01", "lang": "en", "type": "out_of_scope", "category": "adversarial",
+    "question": "What is the corporate income tax rate that telecom operators in Armenia must pay?",
+    "expected_answer": "Not covered: the Law on Electronic Communications does not set corporate income tax rates.",
+    "key_facts": ["should refuse / say not covered"],
+    "expected_articles": [], "acceptable_articles": []
+  },
+  {
+    "id": "adv-02", "lang": "hy", "type": "out_of_scope", "category": "adversarial",
+    "question": "Ի՞նչ պահանջներ է սահմանում օրենքը բջջային համարի տեղափոխելիության (number portability) համար։",
+    "expected_answer": "Չի անդրադառնում. օրենքը համարի տեղափոխելիության մասին դրույթներ չի պարունակում (համարագրման պլանը և համարների զբաղեցումը կարգավորվում են, բայց ոչ տեղափոխելիությունը)։",
+    "key_facts": ["should say the law does not address number portability"],
+    "expected_articles": [], "acceptable_articles": ["41", "42"]
+  },
+  {
+    "id": "adv-03", "lang": "en", "type": "out_of_scope", "category": "adversarial",
+    "question": "What minimum broadband download speed must internet providers guarantee to their customers?",
+    "expected_answer": "Not covered: the Law does not set any minimum broadband speed.",
+    "key_facts": ["should refuse / say not covered"],
+    "expected_articles": [], "acceptable_articles": ["40"]
+  },
+  {
+    "id": "adv-04", "lang": "en", "type": "false_premise", "category": "adversarial",
+    "question": "For how many years does the law require operators to keep recordings of all customer phone calls?",
+    "expected_answer": "The Law contains no such requirement. It does not require operators to record calls; interception or recording of message content is allowed only with the written consent of the parties or a court order (Article 50). The Regulator may establish record retention standards for regulated persons (Article 5), but no period for call recordings is set in the Law.",
+    "key_facts": ["no such requirement / premise is false", "recording content only with consent or court order"],
+    "expected_articles": [], "acceptable_articles": ["50", "5", "49"]
+  },
+  {
+    "id": "adv-05", "lang": "en", "type": "synthesis", "category": "adversarial",
+    "question": "If a licensee keeps operating in violation of a cease-and-desist order, what measures can the Regulator take against it?",
+    "expected_answer": "Violating a cease-and-desist order is an offence warranting sanctions (Article 61). The Regulator may suspend the licence or file a court claim for its withdrawal, and suspend or withdraw radio frequency authorisations (Article 12(2)(5)); it may impose penalties and fines (Article 63); and it may request judicial enforcement of the order after notifying the licensee and giving it a chance to remedy and be heard (Article 62).",
+    "key_facts": ["sanctions for violating a cease-and-desist order", "suspension / withdrawal of licence", "fines", "judicial enforcement"],
+    "expected_articles": ["61", "12", "62"], "acceptable_articles": ["60", "63"]
+  },
+  {
+    "id": "adv-06", "lang": "hy", "type": "synthesis", "category": "adversarial",
+    "question": "Ինչպե՞ս կարող է օպերատորը վիճարկել Կարգավորողի որոշումը, և պարտադի՞ր է արդյոք նախ դիմել Կարգավորողին վերանայման համար։",
+    "expected_answer": "Օպերատորը կարող է 30 օրվա ընթացքում միջնորդել Կարգավորողին վերանայել որոշումը (Կարգավորողը որոշում է 180 օրում) կամ բողոքարկել դատական կարգով։ Վերանայման միջնորդությունը դատական բողոքարկման պարտադիր նախապայման չէ (հոդված 57)։ Դատարանը ստուգում է ընթացակարգի պահպանումը և կարող է անվավեր ճանաչել որոշումը միայն սահմանված հիմքերով, օրինակ՝ կամայական կամ խտրական լինելու, էական ապացույցներով չհիմնավորված լինելու դեպքում (հոդված 58)։",
+    "key_facts": ["reconsideration within 30 days", "judicial review available", "reconsideration is not a mandatory prerequisite for court", "court reviews only on listed grounds"],
+    "expected_articles": ["57", "58"], "acceptable_articles": ["56"]
+  },
+  {
+    "id": "adv-07", "lang": "en", "type": "synthesis", "category": "adversarial",
+    "question": "Can an operator suspend a subscriber who connected non-certified terminal equipment without prior notice, and what obligation of the end-user does this relate to?",
+    "expected_answer": "Yes. Connecting non-certified terminal equipment is a ground for restriction or suspension (Article 45(1)(2)), and the five-business-day notice is not required where immediate suspension is necessary in that case (Article 45(2)). It relates to the end-user's obligation not to use non-certified terminal equipment (Article 55(2)(4)).",
+    "key_facts": ["ground for suspension", "no prior notice needed in that case", "end-user obligation not to use non-certified equipment"],
+    "expected_articles": ["45", "55"], "acceptable_articles": ["44"]
+  }
+]
