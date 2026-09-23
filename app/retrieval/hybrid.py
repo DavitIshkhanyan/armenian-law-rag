@@ -20,10 +20,12 @@ from rank_bm25 import BM25Okapi
 from app.retrieval.embeddings import DenseIndex, load_chunks
 
 RRF_K = 60
-# Fusion weights per ranked list (dense-hy, dense-en each W_DENSE; BM25 W_BM25), chosen on the
-# paraphrase dev set eval/retrieval_dev.json, not on the benchmark questions.
+# Fusion weights per ranked list (dense-hy, dense-en each W_DENSE; BM25 W_BM25). Dense is the
+# primary signal: at equal weight BM25 drags paraphrased questions down (recall@5 0.89 vs 1.00 on
+# eval/retrieval_dev.json), while a small weight keeps its benefit on exact legal wording.
+# See `python -m app.eval.retrieval_eval` and docs/RAG_PIPELINE.md.
 W_DENSE = 1.0
-W_BM25 = 1.0
+W_BM25 = 0.25
 STEM_LEN = 6
 TOKEN_RE = re.compile(r"\w+", re.UNICODE)
 ARMENIAN_RE = re.compile(r"[Ա-֏]")
