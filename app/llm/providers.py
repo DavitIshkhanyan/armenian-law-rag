@@ -9,7 +9,9 @@ Measured per call: time-to-first-token, total time, prompt/completion tokens (fr
 """
 from __future__ import annotations
 
+import threading
 import time
+from collections import deque
 from collections.abc import Iterator
 from dataclasses import dataclass, field
 
@@ -42,6 +44,38 @@ class CallStats:
         return (self.prompt_tokens * spec.price_in + self.completion_tokens * spec.price_out) / 1e6
 
 
+class Pacer:
+    """Client-side limiter for free-tier quotas: keeps requests and estimated tokens within a
+    sliding 60 s window per model, so the benchmark measures models rather than 429 storms."""
+
+    def __init__(self):
+        self._lock = threading.Lock()
+        self._log: dict[str, deque] = {}
+
+    def wait(self, spec: ModelSpec, est_tokens: int) -> None:
+        while True:
+            with self._lock:
+                now = time.monotonic()
+                log = self._log.setdefault(spec.key, deque())
+                while log and now - log[0][0] > 60:
+                    log.popleft()
+                used = sum(t for _, t in log)
+                if len(log) < spec.rpm and (spec.tpm is None or not log or used + est_tokens <= spec.tpm):
+                    log.append((now, est_tokens))
+                    return
+                delay = 60 - (now - log[0][0]) + 0.1
+            time.sleep(max(delay, 0.1))
+
+
+PACER = Pacer()
+
+
+def estimate_tokens(messages: list[dict], max_tokens: int) -> int:
+    # Armenian script costs roughly 2-3x more tokens per character than English; ~2.5 chars/token
+    # is a conservative estimate across both, plus a typical answer length.
+    return sum(len(m["content"]) for m in messages) * 2 // 5 + min(max_tokens, 600)
+
+
 def _client(spec: ModelSpec) -> OpenAI:
     return OpenAI(api_key=spec.api_key, base_url=spec.base_url, timeout=TIMEOUT_S, max_retries=0)
 
@@ -55,7 +89,7 @@ def _classify(exc: Exception) -> str:
 
 
 def stream_chat(model_key: str, messages: list[dict], stats: CallStats | None = None,
-                temperature: float = 0.0, max_tokens: int = 1024) -> Iterator[str]:
+                temperature: float = 0.0, max_tokens: int = 2048, pace: bool = True) -> Iterator[str]:
     """Yield text deltas; fill `stats` as a side effect. Retries only before the first token."""
     spec = MODELS[model_key]
     stats = stats if stats is not None else CallStats(model_key)
@@ -65,11 +99,13 @@ def stream_chat(model_key: str, messages: list[dict], stats: CallStats | None = 
 
     client = _client(spec)
     for attempt in range(MAX_RETRIES + 1):
+        if pace:
+            PACER.wait(spec, estimate_tokens(messages, max_tokens))
         start = time.perf_counter()
         got_token = False
         try:
             kwargs = dict(model=spec.model, messages=messages, temperature=temperature,
-                          max_tokens=max_tokens, stream=True)
+                          max_tokens=max_tokens, stream=True, **spec.extra)
             if spec.provider != "Mistral":  # Mistral sends usage in the last chunk without this flag
                 kwargs["stream_options"] = {"include_usage": True}
             for chunk in client.chat.completions.create(**kwargs):

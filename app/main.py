@@ -13,7 +13,7 @@ from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from app.config import MODELS, ROOT
+from app.config import BENCHMARK_MODELS, MODELS, ROOT
 from app.rag.pipeline import TOP_K, answer
 from app.retrieval.hybrid import get_retriever
 
@@ -42,7 +42,7 @@ def sse(events: Iterator[dict]) -> StreamingResponse:
 @app.get("/api/models")
 def models() -> list[dict]:
     return [{"key": m.key, "provider": m.provider, "model": m.model, "available": bool(m.api_key)}
-            for m in MODELS.values()]
+            for m in MODELS.values() if m.key in BENCHMARK_MODELS]
 
 
 class AskRequest(BaseModel):
@@ -53,7 +53,7 @@ class AskRequest(BaseModel):
 
 @app.post("/api/ask")
 def ask(req: AskRequest) -> StreamingResponse:
-    if req.model not in MODELS:
+    if req.model not in BENCHMARK_MODELS:
         raise HTTPException(400, f"unknown model {req.model}")
     return sse(answer(req.question.strip(), req.model, req.top_k))
 
