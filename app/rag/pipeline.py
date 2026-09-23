@@ -9,6 +9,7 @@ import time
 from collections.abc import Iterator
 from dataclasses import asdict, dataclass
 
+from app.config import MODELS
 from app.llm.providers import CallStats, stream_chat
 from app.rag.context import ContextBlock, build_context
 from app.rag.prompts import build_messages, is_refusal, parse_citations
@@ -48,6 +49,7 @@ def generate(prep: Prepared, model_key: str) -> Iterator[dict]:
         "citations": cited,
         "uncited_context": [a for a in cited if a not in context_articles],  # cited but never retrieved
         "refusal": is_refusal(stats.text),
+        "cost_usd": stats.cost_usd(MODELS[model_key]),
         "stats": asdict(stats) | {"text": None},
     }
 
