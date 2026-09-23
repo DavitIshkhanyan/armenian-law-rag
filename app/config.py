@@ -34,6 +34,8 @@ def source_path(lang: str) -> Path:
 
 
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "BAAI/bge-m3")
+# Pinned for reproducible embeddings; override together with EMBEDDING_MODEL.
+EMBEDDING_REVISION = os.getenv("EMBEDDING_REVISION", "5617a9f61b028005a4858fdac845db406aefb181")
 
 
 @dataclass(frozen=True)

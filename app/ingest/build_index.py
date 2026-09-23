@@ -1,10 +1,13 @@
-"""Build the processed corpus: parse both PDFs -> articles_{hy,en}.json + chunks.json.
+"""Build the processed corpus: parse both PDFs -> articles_{hy,en}.json + chunks.json, then
+precompute chunk embeddings.
 
-Usage: uv run python -m app.ingest.build_index
+Usage: uv run python -m app.ingest.build_index            (needs the source PDFs)
+       uv run python -m app.ingest.build_index --embed-only (uses committed chunks.json)
 """
 from __future__ import annotations
 
 import json
+import sys
 from statistics import mean
 
 from app.config import PROCESSED_DIR
@@ -30,5 +33,14 @@ def build_corpus() -> list[dict]:
     return chunks
 
 
+def build_embeddings() -> None:
+    from app.retrieval.embeddings import DenseIndex, load_chunks
+
+    index = DenseIndex(load_chunks())
+    print(f"embeddings: {index.matrix.shape}")
+
+
 if __name__ == "__main__":
-    build_corpus()
+    if "--embed-only" not in sys.argv:
+        build_corpus()
+    build_embeddings()
