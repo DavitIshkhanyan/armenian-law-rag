@@ -25,7 +25,7 @@ API keys are read from environment variables only; `.env` is git-ignored.
 |---|---|---|
 | Google AI Studio | `gemini-3.8-flash` | `GEMINI_API_KEY` |
 | Groq | `openai/gpt-oss-120b` | `GROQ_API_KEY` |
-| OpenRouter | `google/gemma-4-31b-it:free` | `OPENROUTER_API_KEY` |
+| OpenRouter | `nvidia/nemotron-3-super-120b-a12b:free` | `OPENROUTER_API_KEY` |
 | Judge (benchmark only) | `qwen/qwen3.8-27b` on Groq | `GROQ_API_KEY` |
 
 Model ids can be overridden with `GEMINI_MODEL`, `GROQ_MODEL`, `OPENROUTER_MODEL`, `JUDGE_MODEL`.
@@ -46,7 +46,7 @@ Benchmark from the command line (same code as the UI tab):
 
 ```bash
 uv run python -m app.eval.run_benchmark                     # all models, all 21 questions
-uv run python -m app.eval.run_benchmark --models gemma-4-31b --limit 3
+uv run python -m app.eval.run_benchmark --models nemotron-3-super --limit 3
 uv run python -m app.eval.run_benchmark --rescore eval/results/<run>   # re-judge saved answers
 ```
 

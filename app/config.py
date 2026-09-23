@@ -70,9 +70,12 @@ _SPECS = [
               GROQ_URL, "GROQ_API_KEY", 0.15, 0.60, rpm=30, tpm=8000,
               extra={"reasoning_effort": "low"}),
     # Open-weights model via OpenRouter's free tier (20 RPM, 50 requests/day without credits);
-    # priced at the paid variant's rate. Mistral was dropped: the free workspace had a 0 RPM limit.
-    ModelSpec("gemma-4-31b", "OpenRouter", os.getenv("OPENROUTER_MODEL", "google/gemma-4-31b-it:free"),
-              OPENROUTER_URL, "OPENROUTER_API_KEY", 0.09, 0.34, rpm=20),
+    # priced at the paid variant's rate. Mistral was dropped (free workspace had a 0 RPM limit) and
+    # the free Gemma 4 / GLM endpoints were saturated upstream, so this is NVIDIA-hosted Nemotron.
+    ModelSpec("nemotron-3-super", "OpenRouter",
+              os.getenv("OPENROUTER_MODEL", "nvidia/nemotron-3-super-120b-a12b:free"),
+              OPENROUTER_URL, "OPENROUTER_API_KEY", 0.08, 0.45, rpm=20,
+              extra={"reasoning_effort": "low"}),
     # Judge: from a model family that is not benchmarked (avoids self-preference).
     ModelSpec("judge", "Groq", os.getenv("JUDGE_MODEL", "qwen/qwen3.8-27b"),
               GROQ_URL, "GROQ_API_KEY", 0.80, 4.00, rpm=30, tpm=8000, benchmark=False),
