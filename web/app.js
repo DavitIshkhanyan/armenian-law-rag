@@ -44,7 +44,7 @@ async function loadModels() {
 // Wrap [Article N] / [Հոդված N] markers so they link to the retrieved source.
 function renderAnswer(text, retrieved) {
   return esc(text).replace(/\[(Article|Art\.|Հոդված|Հոդ\.)\s*([^\]]+)\]/gi, (m, _w, inner) => {
-    const nums = [...inner.matchAll(/(\d{1,2}(?:\.\d)?)/g)].map((x) => x[1]);
+    const nums = [...inner.replace(/\([^)]*\)/g, " ").matchAll(/(\d{1,2}(?:\.\d)?)/g)].map((x) => x[1]);
     const ok = nums.every((n) => retrieved.has(n));
     return `<span class="cite ${ok ? "" : "bad"}" data-art="${nums[0] || ""}" title="${ok ? "Show source" : "Cited article was not in the retrieved context"}">${m}</span>`;
   });

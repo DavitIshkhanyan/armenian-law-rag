@@ -32,7 +32,8 @@ def build_messages(question: str, context: str) -> list[dict]:
 
 
 CITATION_RE = re.compile(r"\[\s*(?:Article|Art\.|Հոդված|Հոդ\.)\s*([^\]]+)\]", re.IGNORECASE)
-NUM_RE = re.compile(r"(\d{1,2}(?:\.\d)?)(?:\s*\((\d+)\))?")
+NUM_RE = re.compile(r"\d{1,2}(?:\.\d)?")
+PAREN_RE = re.compile(r"\([^)]*\)")  # part / point markers: 49(2)(1)
 
 
 def parse_citations(answer: str) -> list[str]:
@@ -40,7 +41,7 @@ def parse_citations(answer: str) -> list[str]:
     found: list[str] = []
     for inner in CITATION_RE.findall(answer):
         # Also handles "[Article 12, 13]" or "[Article 12 and Article 13]" if a model ignores the format.
-        for num, _part in NUM_RE.findall(inner):
+        for num in NUM_RE.findall(PAREN_RE.sub(" ", inner)):
             if num not in found:
                 found.append(num)
     return found
