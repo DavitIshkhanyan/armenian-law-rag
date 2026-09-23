@@ -1,8 +1,8 @@
 """Benchmark: same questions, same retrieved context, several LLMs.
 
 Retrieval runs once per question and the identical prompt goes to every model, so differences
-come from the models alone. Models run in parallel threads (one per provider, questions in order
-within a model) and each is paced to its own free-tier limits.
+come from the models alone. Phase 1: models answer in parallel threads (one per provider, each paced
+to its own free-tier limits). Phase 2: the judge scores the saved answers.
 
 Usage:
   uv run python -m app.eval.run_benchmark                      # all models, all questions
@@ -59,10 +59,29 @@ def _run_one(model: str, q: dict, prep) -> dict:
     }
 
 
-def score(row: dict, q: dict, context: str) -> dict:
+JUDGE_CONTEXT_CHARS = 7000
+
+
+def judge_context(prep, row: dict, q: dict) -> str:
+    """The part of the retrieved context the judge needs: articles the answer cites plus the ones the
+    answer key expects. Sending all five articles overflowed Groq's 8K-token per-request limit for
+    Armenian prompts, and uncited articles cannot make an answer's claims supported anyway."""
+    wanted = set(row["citations"]) | set(q["expected_articles"]) | set(q.get("acceptable_articles", []))
+    blocks = [b for b in prep.blocks if b.article in wanted] or prep.blocks[:2]
+    parts, used = [], 0
+    for b in blocks:
+        text = f"[Article {b.article}. {b.title}]\n{b.text}"
+        if parts and used + len(text) > JUDGE_CONTEXT_CHARS:
+            break
+        parts.append(text[:JUDGE_CONTEXT_CHARS])
+        used += len(text)
+    return "\n\n".join(parts)
+
+
+def score(row: dict, q: dict, prep) -> dict:
     if row["error"] and not row["answer"]:
         return row | {"correctness": 0.0, "hallucination": None, "judged": False}
-    row = row | judge(q, row["answer"], context) | {"judged": True}
+    row = row | judge(q, row["answer"], judge_context(prep, row, q)) | {"judged": True}
     if q["type"] == "out_of_scope" and "correctness" in row:
         # Deterministic guard: an exact refusal on an out-of-scope question is correct by definition.
         row["correctness"] = 1.0 if row["refusal"] else row["correctness"]
@@ -81,20 +100,18 @@ def run(models: list[str], limit: int | None = None, out_dir: Path | None = None
         preps[q["id"]] = prepare(q["question"])
     yield {"type": "retrieval_done"}
 
+    # Phase 1: every model answers every question (models in parallel, each paced to its own limits).
     events: queue.Queue = queue.Queue()
-    rows: list[dict] = []
+    answers: list[dict] = []
     lock = threading.Lock()
 
     def worker(model: str):
         for q in questions:
-            prep = preps[q["id"]]
-            row = score(_run_one(model, q, prep), q, prep.context)
+            row = _run_one(model, q, preps[q["id"]])
             with lock:
-                rows.append(row)
-                with open(out_dir / "raw.jsonl", "a", encoding="utf-8") as f:
-                    f.write(json.dumps(row, ensure_ascii=False) + "\n")
-            events.put({"type": "progress", "model": model, "qid": q["id"], "error": row["error"],
-                        "correctness": row.get("correctness"), "ttft_s": row["ttft_s"]})
+                answers.append(row)
+            events.put({"type": "answered", "model": model, "qid": q["id"], "error": row["error"],
+                        "ttft_s": row["ttft_s"]})
         events.put({"type": "model_done", "model": model})
 
     threads = [threading.Thread(target=worker, args=(m,), daemon=True) for m in models]
@@ -105,6 +122,19 @@ def run(models: list[str], limit: int | None = None, out_dir: Path | None = None
         ev = events.get()
         done += ev["type"] == "model_done"
         yield ev
+
+    # Phase 2: judge the answers. Kept separate so the judge's rate limit never delays (or skews the
+    # timing of) the benchmarked models.
+    qs = {q["id"]: q for q in questions}
+    rows: list[dict] = []
+    for row in answers:
+        row = score(row, qs[row["qid"]], preps[row["qid"]])
+        rows.append(row)
+        with open(out_dir / "raw.jsonl", "a", encoding="utf-8") as f:
+            f.write(json.dumps(row, ensure_ascii=False) + "\n")
+        yield {"type": "progress", "model": row["model"], "qid": row["qid"], "error": row["error"],
+               "correctness": row.get("correctness"), "ttft_s": row["ttft_s"],
+               "judge_error": row.get("judge_error")}
 
     summary = summarize(rows, models)
     write_summary(out_dir, summary)
@@ -186,10 +216,10 @@ def rescore(run_dir: Path) -> list[dict]:
     """Re-run the judge on saved answers (e.g. after a judge failure) without re-querying models."""
     qs = {q["id"]: q for q in load_questions()}
     raw = [json.loads(line) for line in (run_dir / "raw.jsonl").read_text(encoding="utf-8").splitlines()]
-    contexts = {qid: prepare(q["question"]).context for qid, q in qs.items() if any(r["qid"] == qid for r in raw)}
+    preps = {qid: prepare(q["question"]) for qid, q in qs.items() if any(r["qid"] == qid for r in raw)}
     rows = [score({k: v for k, v in r.items() if k not in ("correctness", "hallucination", "unsupported_claims",
                                                             "judge_rationale", "judge_error", "judge_raw", "judged")},
-                  qs[r["qid"]], contexts[r["qid"]]) for r in raw]
+                  qs[r["qid"]], preps[r["qid"]]) for r in raw]
     (run_dir / "raw.jsonl").write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8")
     models = list(dict.fromkeys(r["model"] for r in rows))
     summary = summarize(rows, models)
@@ -209,10 +239,13 @@ def main() -> None:
         t0 = time.time()
         summary = []
         for ev in run(args.models, args.limit):
-            if ev["type"] == "progress":
-                c = ev["correctness"]
-                print(f"[{time.time() - t0:6.0f}s] {ev['model']:14} {ev['qid']:7} "
-                      f"{'ERR ' + ev['error'] if ev['error'] else f'score={c}'}", flush=True)
+            if ev["type"] == "answered":
+                print(f"[{time.time() - t0:6.0f}s] answered {ev['model']:16} {ev['qid']:7} "
+                      f"{'ERR ' + ev['error'] if ev['error'] else 'ok'}", flush=True)
+            elif ev["type"] == "progress":
+                note = f" judge_error={ev['judge_error'][:80]}" if ev.get("judge_error") else ""
+                print(f"[{time.time() - t0:6.0f}s] scored   {ev['model']:16} {ev['qid']:7} "
+                      f"score={ev['correctness']}{note}", flush=True)
             elif ev["type"] == "summary":
                 summary = ev["summary"]
                 print("results:", ev["out_dir"])
