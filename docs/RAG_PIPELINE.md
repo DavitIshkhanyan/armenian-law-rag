@@ -146,7 +146,7 @@ A fixed refusal string means out-of-scope handling can be scored **deterministic
 works. Each citation is checked against the articles that were actually in the context. A citation of an
 article that was not retrieved is a hallucination signal: the UI shows it in red and the benchmark counts it.
 
-**Provider layer.** Gemini, Groq and Mistral all expose OpenAI-compatible chat endpoints, so a single
+**Provider layer.** Gemini, Groq and OpenRouter all expose OpenAI-compatible chat endpoints, so a single
 streaming client handles all three. The request shape, timing code and error handling are identical for each.
 Per call it records:
 - **TTFT**, measured to the first content token;

@@ -59,7 +59,7 @@ class ModelSpec:
 
 GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
 GROQ_URL = "https://api.groq.com/openai/v1"
-MISTRAL_URL = "https://api.mistral.ai/v1"
+OPENROUTER_URL = "https://openrouter.ai/api/v1"
 
 # Paid list prices (USD / 1M tokens) and free-tier limits as published by each provider in
 # September 2026; sources in docs/EVALUATION_REPORT.md. Model ids can be overridden via env.
@@ -69,11 +69,13 @@ _SPECS = [
     ModelSpec("gpt-oss-120b", "Groq", os.getenv("GROQ_MODEL", "openai/gpt-oss-120b"),
               GROQ_URL, "GROQ_API_KEY", 0.15, 0.60, rpm=30, tpm=8000,
               extra={"reasoning_effort": "low"}),
-    ModelSpec("mistral-small", "Mistral", os.getenv("MISTRAL_MODEL", "mistral-small-latest"),
-              MISTRAL_URL, "MISTRAL_API_KEY", 0.15, 0.60, rpm=60),
-    # Judge: a stronger model that is not one of the benchmarked models.
-    ModelSpec("judge", "Mistral", os.getenv("JUDGE_MODEL", "mistral-medium-latest"),
-              MISTRAL_URL, "MISTRAL_API_KEY", 1.5, 7.5, rpm=60, benchmark=False),
+    # Open-weights model via OpenRouter's free tier (20 RPM, 50 requests/day without credits);
+    # priced at the paid variant's rate. Mistral was dropped: the free workspace had a 0 RPM limit.
+    ModelSpec("gemma-4-31b", "OpenRouter", os.getenv("OPENROUTER_MODEL", "google/gemma-4-31b-it:free"),
+              OPENROUTER_URL, "OPENROUTER_API_KEY", 0.09, 0.34, rpm=20),
+    # Judge: from a model family that is not benchmarked (avoids self-preference).
+    ModelSpec("judge", "Groq", os.getenv("JUDGE_MODEL", "qwen/qwen3.8-27b"),
+              GROQ_URL, "GROQ_API_KEY", 0.80, 4.00, rpm=30, tpm=8000, benchmark=False),
 ]
 MODELS: dict[str, ModelSpec] = {m.key: m for m in _SPECS}
 BENCHMARK_MODELS = [m.key for m in _SPECS if m.benchmark]

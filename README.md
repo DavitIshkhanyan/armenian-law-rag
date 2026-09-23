@@ -15,7 +15,7 @@ Requires Python 3.11–3.12 and [uv](https://docs.astral.sh/uv/).
 
 ```bash
 uv sync
-cp .env.example .env          # add GEMINI_API_KEY, GROQ_API_KEY, MISTRAL_API_KEY
+cp .env.example .env          # add GEMINI_API_KEY, GROQ_API_KEY, OPENROUTER_API_KEY
 uv run python -m app.llm.probe   # checks every key / model id
 ```
 
@@ -25,10 +25,12 @@ API keys are read from environment variables only; `.env` is git-ignored.
 |---|---|---|
 | Google AI Studio | `gemini-3.8-flash` | `GEMINI_API_KEY` |
 | Groq | `openai/gpt-oss-120b` | `GROQ_API_KEY` |
-| Mistral | `mistral-small-latest` | `MISTRAL_API_KEY` |
-| Judge (benchmark only) | `mistral-medium-latest` | `MISTRAL_API_KEY` |
+| OpenRouter | `google/gemma-4-31b-it:free` | `OPENROUTER_API_KEY` |
+| Judge (benchmark only) | `qwen/qwen3.8-27b` on Groq | `GROQ_API_KEY` |
 
-Model ids can be overridden with `GEMINI_MODEL`, `GROQ_MODEL`, `MISTRAL_MODEL`, `JUDGE_MODEL`.
+Model ids can be overridden with `GEMINI_MODEL`, `GROQ_MODEL`, `OPENROUTER_MODEL`, `JUDGE_MODEL`.
+OpenRouter's free tier allows 50 requests/day without purchased credits — enough for about two full
+benchmark runs of the third model per day.
 
 ## Run
 
@@ -44,7 +46,7 @@ Benchmark from the command line (same code as the UI tab):
 
 ```bash
 uv run python -m app.eval.run_benchmark                     # all models, all 21 questions
-uv run python -m app.eval.run_benchmark --models mistral-small --limit 3
+uv run python -m app.eval.run_benchmark --models gemma-4-31b --limit 3
 uv run python -m app.eval.run_benchmark --rescore eval/results/<run>   # re-judge saved answers
 ```
 

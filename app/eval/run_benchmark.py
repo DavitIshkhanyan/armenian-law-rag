@@ -6,7 +6,7 @@ within a model) and each is paced to its own free-tier limits.
 
 Usage:
   uv run python -m app.eval.run_benchmark                      # all models, all questions
-  uv run python -m app.eval.run_benchmark --models mistral-small --limit 3
+  uv run python -m app.eval.run_benchmark --models gemma-4-31b --limit 3
   uv run python -m app.eval.run_benchmark --rescore eval/results/<run>   # re-judge saved answers
 
 Output: eval/results/<timestamp>/raw.jsonl (one line per model x question), summary.json, summary.csv

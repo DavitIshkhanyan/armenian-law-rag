@@ -63,6 +63,7 @@ Return only JSON: {{"correctness": 0 | 0.5 | 1, "hallucination": true | false, "
 
 
 def _parse_json(text: str) -> dict | None:
+    text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL)  # reasoning models may inline thoughts
     m = re.search(r"\{.*\}", text, re.DOTALL)
     if not m:
         return None
@@ -78,7 +79,7 @@ def judge(q: dict, answer: str, context: str) -> dict:
         key_facts="; ".join(q["key_facts"]), context=context, answer=answer,
     )
     for _ in range(2):
-        stats = complete(JUDGE_MODEL, [{"role": "user", "content": prompt}], max_tokens=600)
+        stats = complete(JUDGE_MODEL, [{"role": "user", "content": prompt}], max_tokens=1500)
         if stats.error:
             return {"judge_error": f"{stats.error}: {stats.error_detail}"}
         data = _parse_json(stats.text)

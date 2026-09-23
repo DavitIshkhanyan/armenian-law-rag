@@ -1,6 +1,6 @@
 """One streaming client for every provider.
 
-Gemini, Groq and Mistral all expose OpenAI-compatible chat completion endpoints, so a single code
+Gemini, Groq and OpenRouter all expose OpenAI-compatible chat completion endpoints, so a single code
 path handles them; only base_url / key / model differ (see app/config.py). This keeps the benchmark
 fair: same request shape, same timing code, same error handling for every model.
 
@@ -106,8 +106,7 @@ def stream_chat(model_key: str, messages: list[dict], stats: CallStats | None = 
         try:
             kwargs = dict(model=spec.model, messages=messages, temperature=temperature,
                           max_tokens=max_tokens, stream=True, **spec.extra)
-            if spec.provider != "Mistral":  # Mistral sends usage in the last chunk without this flag
-                kwargs["stream_options"] = {"include_usage": True}
+            kwargs["stream_options"] = {"include_usage": True}
             for chunk in client.chat.completions.create(**kwargs):
                 if chunk.usage:
                     stats.prompt_tokens = chunk.usage.prompt_tokens
