@@ -3,61 +3,106 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Electronic Communications Law Assistant</title>
+<meta name="color-scheme" content="light dark">
+<title>Electronic Communications Law — Research Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Sans+Armenian:wght@400;500;600&family=Noto+Serif+Armenian:wght@400;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-<header>
-  <h1>RA Law on Electronic Communications — Assistant</h1>
-  <nav>
-    <button class="tab active" data-tab="ask">Ask</button>
-    <button class="tab" data-tab="bench">Benchmark</button>
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-title">Electronic Communications Law</span>
+    <span class="brand-sub">Research assistant for the Law of the Republic of Armenia HO-176-N</span>
+  </div>
+  <nav class="tabs" role="tablist">
+    <button class="tab active" role="tab" aria-selected="true" data-tab="ask">Ask</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="bench">Benchmark</button>
   </nav>
 </header>
 
 <main>
-  <section id="ask" class="panel active">
-    <div class="row">
-      <label>Model <select id="model"></select></label>
-      <label>Top-k articles <input id="topk" type="number" min="1" max="10" value="5"></label>
-    </div>
-    <textarea id="question" rows="3" placeholder="Ask in Armenian or English… / Հարցրեք հայերեն կամ անգլերեն…"></textarea>
-    <div class="row">
-      <button id="askBtn">Ask</button>
-      <span class="examples">Examples:
-        <a href="#" class="ex">Ի՞նչ դեպքերում կարող է օպերատորը բացահայտել հաճախորդի տեղեկությունները</a> ·
-        <a href="#" class="ex">How many days' notice must a provider give before suspending a subscriber's service?</a> ·
-        <a href="#" class="ex">What are the GDPR requirements for storing customer data?</a>
-      </span>
-    </div>
+  <!-- Ask -->
+  <section id="ask" class="panel active" role="tabpanel">
+    <div class="ask-layout">
+      <div class="col-answer">
+        <form id="askForm" class="question-box">
+          <label for="question" class="visually-hidden">Question</label>
+          <textarea id="question" rows="3" placeholder="Ask in Armenian or English. Հարցրեք հայերեն կամ անգլերեն։"></textarea>
+          <div class="question-actions">
+            <label class="field">Model
+              <select id="model"></select>
+            </label>
+            <label class="field">Articles to retrieve
+              <select id="topk">
+                <option>3</option><option selected>5</option><option>7</option><option>10</option>
+              </select>
+            </label>
+            <button id="askBtn" class="btn-primary" type="submit" disabled>Ask</button>
+          </div>
+          <p class="hint">Press ⌘ Enter to ask.</p>
+        </form>
 
-    <div id="answerBox" class="hidden">
-      <h2>Answer</h2>
-      <div id="answer"></div>
-      <div id="citations"></div>
-      <div id="stats" class="muted"></div>
-      <h2>Retrieved articles <span class="muted" id="retrMeta"></span></h2>
-      <div id="sources"></div>
+        <div id="answerArea" class="answer-area empty">
+          <div class="starter">
+            <h2>Try a question</h2>
+            <ul class="examples">
+              <li><button type="button" class="ex" lang="hy">Ի՞նչ դեպքերում կարող է օպերատորը բացահայտել հաճախորդի տեղեկությունները։</button></li>
+              <li><button type="button" class="ex">How much notice must a provider give before suspending a subscriber's service?</button></li>
+              <li><button type="button" class="ex" lang="hy">Որքա՞ն ժամկետում կարելի է միջնորդել Կարգավորողին վերանայել որոշումը։</button></li>
+              <li><button type="button" class="ex">What minimum broadband speed must providers guarantee?</button></li>
+            </ul>
+          </div>
+          <article id="answerCard" class="answer" hidden>
+            <div id="answerStatus" class="answer-status"></div>
+            <div id="answer" class="answer-text" aria-live="polite"></div>
+            <div id="citations" class="citations"></div>
+            <p id="stats" class="stats"></p>
+          </article>
+        </div>
+      </div>
+
+      <aside class="col-law" aria-label="Retrieved articles of the law">
+        <div class="law-head">
+          <h2>Text of the law</h2>
+          <p id="retrMeta" class="law-meta">The articles used for the answer appear here, so every citation can be checked against the text.</p>
+        </div>
+        <div id="sources" class="sources"></div>
+      </aside>
     </div>
   </section>
 
-  <section id="bench" class="panel">
-    <p class="muted">Runs the ground-truth set (eval/questions.json) through the same RAG pipeline for each model.
-      Retrieval is done once per question, so every model gets an identical prompt. Answers are scored by a separate judge model.</p>
-    <div class="row">
-      <span id="benchModels"></span>
-      <label>Questions <input id="benchLimit" type="number" min="1" placeholder="all"></label>
-      <button id="benchBtn" class="primary">Run benchmark</button>
-      <span id="benchStatus" class="muted"></span>
+  <!-- Benchmark -->
+  <section id="bench" class="panel" role="tabpanel">
+    <div class="bench-intro">
+      <h2>Model benchmark</h2>
+      <p>Runs the 21 ground-truth questions through the same retrieval pipeline for each model. Every model receives
+        an identical prompt, and a separate judge model scores the answers.</p>
     </div>
-    <div class="row">
-      <label>Saved runs <select id="runs"><option value="">—</option></select></label>
+
+    <div class="bench-controls">
+      <fieldset class="model-picks">
+        <legend>Models</legend>
+        <div id="benchModels"></div>
+      </fieldset>
+      <label class="field">Questions
+        <input id="benchLimit" type="number" min="1" max="21" placeholder="All 21">
+      </label>
+      <button id="benchBtn" class="btn-primary" type="button">Run benchmark</button>
+      <label class="field runs-field">Saved runs
+        <select id="runs"><option value="">None yet</option></select>
+      </label>
     </div>
-    <div id="benchProgress"></div>
-    <h2>Results <span class="muted" id="runMeta"></span></h2>
-    <div id="benchSummary" class="muted">Run the benchmark or pick a saved run.</div>
-    <h2>Per-question results</h2>
-    <div id="benchRows"></div>
+    <p id="benchStatus" class="bench-status" aria-live="polite"></p>
+
+    <div id="grid" class="grid-wrap"></div>
+
+    <h3 class="section-title">Results <span id="runMeta" class="muted"></span></h3>
+    <div id="benchSummary" class="table-wrap"><p class="muted">Run the benchmark or open a saved run.</p></div>
+
+    <h3 class="section-title">Answers by question</h3>
+    <div id="benchRows" class="table-wrap"></div>
   </section>
 </main>
 

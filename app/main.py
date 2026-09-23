@@ -72,6 +72,12 @@ def benchmark(req: BenchmarkRequest) -> StreamingResponse:
     return sse(run_benchmark.run(req.models, req.limit))
 
 
+@app.get("/api/questions")
+def questions() -> list[dict]:
+    return [{"id": q["id"], "category": q["category"], "lang": q["lang"], "question": q["question"]}
+            for q in run_benchmark.load_questions()]
+
+
 @app.get("/api/benchmark/runs")
 def benchmark_runs() -> list[str]:
     if not RESULTS_DIR.exists():
