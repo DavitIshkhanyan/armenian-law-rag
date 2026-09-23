@@ -33,7 +33,7 @@ class CallStats:
     completion_tokens: int | None = None
     usage_estimated: bool = False
     retries: int = 0
-    error: str | None = None        # rate_limit | timeout | api_error | empty_output | missing_key
+    error: str | None = None        # rate_limit | timeout | overloaded | api_error | empty_output | missing_key
     error_detail: str | None = None
     text: str = ""
     events: list[str] = field(default_factory=list)
@@ -80,11 +80,18 @@ def _client(spec: ModelSpec) -> OpenAI:
     return OpenAI(api_key=spec.api_key, base_url=spec.base_url, timeout=TIMEOUT_S, max_retries=0)
 
 
+RETRYABLE = {"rate_limit", "timeout", "overloaded"}
+
+
 def _classify(exc: Exception) -> str:
     if isinstance(exc, openai.RateLimitError):
         return "rate_limit"
     if isinstance(exc, (openai.APITimeoutError, TimeoutError)):
         return "timeout"
+    msg = str(exc).lower()
+    if (isinstance(exc, (openai.InternalServerError, openai.APIConnectionError))
+            or "overloaded" in msg or "temporarily" in msg or "unavailable" in msg):
+        return "overloaded"  # transient upstream capacity problem (5xx / provider overloaded)
     return "api_error"
 
 
@@ -124,7 +131,7 @@ def stream_chat(model_key: str, messages: list[dict], stats: CallStats | None = 
         except Exception as exc:  # noqa: BLE001 - every failure is recorded, none is hidden
             stats.error, stats.error_detail = _classify(exc), str(exc)[:300]
             stats.events.append(f"attempt {attempt + 1}: {stats.error}")
-            if got_token or attempt == MAX_RETRIES or stats.error == "api_error":
+            if got_token or attempt == MAX_RETRIES or stats.error not in RETRYABLE:
                 stats.total_s = time.perf_counter() - start
                 break
             stats.retries += 1
