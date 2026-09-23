@@ -171,6 +171,9 @@ def parse(lang: str) -> list[Article]:
                     title, j = lines[j], j + 1
                 else:
                     j = i + 1
+            # Long titles wrap onto a continuation line that starts in lower case.
+            while title and j < len(lines) and lines[j][:1].islower() and not ITEM_START_RE.match(lines[j]):
+                title, j = f"{title} {lines[j]}", j + 1
             if title:
                 flush()
                 articles.append(Article(lang, m.group(1), _clean(title), chapter, chapter_title, section, ""))
