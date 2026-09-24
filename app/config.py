@@ -65,7 +65,8 @@ OPENROUTER_URL = "https://openrouter.ai/api/v1"
 # September 2026; sources in docs/EVALUATION_REPORT.md. Model ids can be overridden via env.
 _SPECS = [
     ModelSpec("gemini-flash", "Google", os.getenv("GEMINI_MODEL", "gemini-3.8-flash"),
-              GEMINI_URL, "GEMINI_API_KEY", 0.75, 3.75, rpm=10),
+              GEMINI_URL, "GEMINI_API_KEY", 0.75, 3.75, rpm=10,
+              extra={"reasoning_effort": "low"}),  # same reasoning setting as the other two models
     ModelSpec("gpt-oss-120b", "Groq", os.getenv("GROQ_MODEL", "openai/gpt-oss-120b"),
               GROQ_URL, "GROQ_API_KEY", 0.15, 0.60, rpm=30, tpm=8000,
               extra={"reasoning_effort": "low"}),

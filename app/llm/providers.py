@@ -31,9 +31,11 @@ class CallStats:
     total_s: float | None = None
     prompt_tokens: int | None = None
     completion_tokens: int | None = None
+    reasoning_tokens: int | None = None  # hidden thinking tokens, billed as output
+    finish_reason: str | None = None
     usage_estimated: bool = False
     retries: int = 0
-    error: str | None = None        # rate_limit | timeout | overloaded | api_error | empty_output | missing_key
+    error: str | None = None        # rate_limit | timeout | overloaded | api_error | empty_output | truncated | missing_key
     error_detail: str | None = None
     text: str = ""
     events: list[str] = field(default_factory=list)
@@ -96,7 +98,7 @@ def _classify(exc: Exception) -> str:
 
 
 def stream_chat(model_key: str, messages: list[dict], stats: CallStats | None = None,
-                temperature: float = 0.0, max_tokens: int = 2048, pace: bool = True) -> Iterator[str]:
+                temperature: float = 0.0, max_tokens: int = 4096, pace: bool = True) -> Iterator[str]:
     """Yield text deltas; fill `stats` as a side effect. Retries only before the first token."""
     spec = MODELS[model_key]
     stats = stats if stats is not None else CallStats(model_key)
@@ -116,8 +118,17 @@ def stream_chat(model_key: str, messages: list[dict], stats: CallStats | None = 
             kwargs["stream_options"] = {"include_usage": True}
             for chunk in client.chat.completions.create(**kwargs):
                 if chunk.usage:
-                    stats.prompt_tokens = chunk.usage.prompt_tokens
-                    stats.completion_tokens = chunk.usage.completion_tokens
+                    u = chunk.usage
+                    stats.prompt_tokens = u.prompt_tokens
+                    # Billed output = total - prompt. Gemini leaves its hidden "thinking" tokens out of
+                    # completion_tokens but bills them; Groq and OpenRouter already include reasoning.
+                    billed = (u.total_tokens - u.prompt_tokens) if u.total_tokens else None
+                    stats.completion_tokens = max(u.completion_tokens or 0, billed or 0)
+                    details = getattr(u, "completion_tokens_details", None)
+                    visible_gap = stats.completion_tokens - (u.completion_tokens or 0)
+                    stats.reasoning_tokens = (getattr(details, "reasoning_tokens", None) if details else None) or (visible_gap or None)
+                if chunk.choices and chunk.choices[0].finish_reason:
+                    stats.finish_reason = chunk.choices[0].finish_reason
                 if chunk.choices and chunk.choices[0].delta and chunk.choices[0].delta.content:
                     delta = chunk.choices[0].delta.content
                     if not got_token:
@@ -126,7 +137,9 @@ def stream_chat(model_key: str, messages: list[dict], stats: CallStats | None = 
                     stats.text += delta
                     yield delta
             stats.total_s = time.perf_counter() - start
-            stats.error = None if stats.text.strip() else "empty_output"
+            stats.error = (None if stats.text.strip() else "empty_output")
+            if stats.error is None and stats.finish_reason == "length":
+                stats.error = "truncated"  # answer cut off by the output limit (malformed output)
             break
         except Exception as exc:  # noqa: BLE001 - every failure is recorded, none is hidden
             stats.error, stats.error_detail = _classify(exc), str(exc)[:300]

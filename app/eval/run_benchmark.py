@@ -84,7 +84,7 @@ def judge_context(prep, row: dict, q: dict) -> str:
 
 
 def score(row: dict, q: dict, prep) -> dict:
-    if row["error"] and not row["answer"]:
+    if row["error"] and not row["answer"].strip():
         return row | {"correctness": 0.0, "hallucination": None, "judged": False}
     row = row | judge(q, row["answer"], judge_context(prep, row, q)) | {"judged": True}
     if q["type"] == "out_of_scope" and "correctness" in row:
@@ -192,6 +192,7 @@ def summarize(rows: list[dict], models: list[str]) -> list[dict]:
             "total_p95_s": _pct([x["total_s"] for x in ok], 95),
             "prompt_tokens_avg": _mean([x["prompt_tokens"] for x in ok]),
             "completion_tokens_avg": _mean([x["completion_tokens"] for x in ok]),
+            "reasoning_tokens_avg": _mean([x.get("reasoning_tokens") or 0 for x in ok]),
             "tokens_total": sum((x["prompt_tokens"] or 0) + (x["completion_tokens"] or 0) for x in ok),
             "usage_estimated": sum(1 for x in ok if x["usage_estimated"]),
             "cost_usd_total": round(sum(x["cost_usd"] or 0 for x in r), 5),
