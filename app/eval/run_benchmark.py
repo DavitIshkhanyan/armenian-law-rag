@@ -219,13 +219,14 @@ def write_summary(out_dir: Path, summary: list[dict]) -> None:
     (out_dir / "meta.json").write_text(json.dumps(meta, indent=1), encoding="utf-8")
 
 
-def rescore(run_dir: Path, only: list[str] | None = None) -> list[dict]:
-    """Re-run the judge on saved answers without re-querying the models; `only` limits it to some
-    question ids and keeps the other scores as they are."""
+def rescore(run_dir: Path, only: list[str] | None = None, failed_only: bool = False) -> list[dict]:
+    """Re-run the judge on saved answers without re-querying the models. `only` limits it to some
+    question ids, `failed_only` to rows where the judge call failed; other scores are kept."""
     qs = {q["id"]: q for q in load_questions()}
     raw = [json.loads(line) for line in (run_dir / "raw.jsonl").read_text(encoding="utf-8").splitlines()]
-    keep = [r for r in raw if only and r["qid"] not in only]
-    raw = [r for r in raw if not only or r["qid"] in only]
+    redo = lambda r: (not only or r["qid"] in only) and (not failed_only or "judge_error" in r)
+    keep = [r for r in raw if not redo(r)]
+    raw = [r for r in raw if redo(r)]
     preps = {qid: prepare(q["question"]) for qid, q in qs.items() if any(r["qid"] == qid for r in raw)}
     rows = [score({k: v for k, v in r.items() if k not in ("correctness", "hallucination", "unsupported_claims",
                                                             "judge_rationale", "judge_error", "judge_raw", "judged")},
@@ -244,6 +245,7 @@ def main() -> None:
     ap.add_argument("--limit", type=int)
     ap.add_argument("--rescore", type=Path)
     ap.add_argument("--only", nargs="*", help="with --rescore: question ids to re-judge")
+    ap.add_argument("--failed-only", action="store_true", help="with --rescore: only rows whose judge call failed")
     ap.add_argument("--summarize", type=Path, help="rebuild summary.json/csv of a run from raw.jsonl")
     args = ap.parse_args()
     if args.summarize:
@@ -251,7 +253,7 @@ def main() -> None:
         summary = summarize(rows, list(dict.fromkeys(r["model"] for r in rows)))
         write_summary(args.summarize, summary)
     elif args.rescore:
-        summary = rescore(args.rescore, args.only)
+        summary = rescore(args.rescore, args.only, args.failed_only)
     else:
         t0 = time.time()
         summary = []
