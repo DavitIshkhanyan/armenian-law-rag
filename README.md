@@ -77,3 +77,12 @@ uv run python -m app.ingest.build_index
 | Scoring and judge | `app/eval/metrics.py` |
 | Benchmark runner | `app/eval/run_benchmark.py` |
 | API / UI | `app/main.py`, `web/` |
+
+## Submission package
+
+```bash
+scripts/make_submission.sh path/to/screen-recording.mp4
+```
+
+Builds `../armenian-law-rag-submission.zip` from the committed tree (source code, eval dataset, raw
+benchmark results, docs PDFs) and adds the recording. `.env` and caches are never included.
