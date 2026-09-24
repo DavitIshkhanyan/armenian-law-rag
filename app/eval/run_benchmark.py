@@ -59,21 +59,26 @@ def _run_one(model: str, q: dict, prep) -> dict:
     }
 
 
-JUDGE_CONTEXT_CHARS = 7000
+# Armenian costs ~2.5 chars/token, English ~4.5; both caps stay under Groq's 8K tokens per request.
+JUDGE_CONTEXT_CHARS = {"hy": 7000, "en": 10000}
 
 
 def judge_context(prep, row: dict, q: dict) -> str:
-    """The part of the retrieved context the judge needs: articles the answer cites plus the ones the
-    answer key expects. Sending all five articles overflowed Groq's 8K-token per-request limit for
-    Armenian prompts, and uncited articles cannot make an answer's claims supported anyway."""
-    wanted = set(row["citations"]) | set(q["expected_articles"]) | set(q.get("acceptable_articles", []))
-    blocks = [b for b in prep.blocks if b.article in wanted] or prep.blocks[:2]
+    """The part of the retrieved context the judge needs. Articles the answer cites come first (the
+    hallucination check is about them), then the ones the answer key expects, then acceptable ones.
+    Sending all five articles overflowed Groq's 8K-token per-request limit for Armenian prompts."""
+    order = (row["citations"] + q["expected_articles"] + q.get("acceptable_articles", []))
+    by_article = {b.article: b for b in prep.blocks}
+    blocks = [by_article[a] for a in dict.fromkeys(order) if a in by_article] or prep.blocks[:2]
+    budget = JUDGE_CONTEXT_CHARS.get(prep.retrieval.lang, 7000)
     parts, used = [], 0
     for b in blocks:
         text = f"[Article {b.article}. {b.title}]\n{b.text}"
-        if parts and used + len(text) > JUDGE_CONTEXT_CHARS:
-            break
-        parts.append(text[:JUDGE_CONTEXT_CHARS])
+        if used + len(text) > budget:
+            if budget - used < 400:
+                break
+            text = text[: budget - used] + " [...]"  # keep the start of the article rather than drop it
+        parts.append(text)
         used += len(text)
     return "\n\n".join(parts)
 
@@ -212,14 +217,18 @@ def write_summary(out_dir: Path, summary: list[dict]) -> None:
     (out_dir / "meta.json").write_text(json.dumps(meta, indent=1), encoding="utf-8")
 
 
-def rescore(run_dir: Path) -> list[dict]:
-    """Re-run the judge on saved answers (e.g. after a judge failure) without re-querying models."""
+def rescore(run_dir: Path, only: list[str] | None = None) -> list[dict]:
+    """Re-run the judge on saved answers without re-querying the models; `only` limits it to some
+    question ids and keeps the other scores as they are."""
     qs = {q["id"]: q for q in load_questions()}
     raw = [json.loads(line) for line in (run_dir / "raw.jsonl").read_text(encoding="utf-8").splitlines()]
+    keep = [r for r in raw if only and r["qid"] not in only]
+    raw = [r for r in raw if not only or r["qid"] in only]
     preps = {qid: prepare(q["question"]) for qid, q in qs.items() if any(r["qid"] == qid for r in raw)}
     rows = [score({k: v for k, v in r.items() if k not in ("correctness", "hallucination", "unsupported_claims",
                                                             "judge_rationale", "judge_error", "judge_raw", "judged")},
                   qs[r["qid"]], preps[r["qid"]]) for r in raw]
+    rows = sorted(keep + rows, key=lambda r: (r["model"], [q for q in qs].index(r["qid"])))
     (run_dir / "raw.jsonl").write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8")
     models = list(dict.fromkeys(r["model"] for r in rows))
     summary = summarize(rows, models)
@@ -232,9 +241,10 @@ def main() -> None:
     ap.add_argument("--models", nargs="*", default=BENCHMARK_MODELS)
     ap.add_argument("--limit", type=int)
     ap.add_argument("--rescore", type=Path)
+    ap.add_argument("--only", nargs="*", help="with --rescore: question ids to re-judge")
     args = ap.parse_args()
     if args.rescore:
-        summary = rescore(args.rescore)
+        summary = rescore(args.rescore, args.only)
     else:
         t0 = time.time()
         summary = []
