@@ -79,7 +79,7 @@ def judge(q: dict, answer: str, context: str) -> dict:
         key_facts="; ".join(q["key_facts"]), context=context, answer=answer,
     )
     for _ in range(2):
-        stats = complete(JUDGE_MODEL, [{"role": "user", "content": prompt}], max_tokens=1500)
+        stats = complete(JUDGE_MODEL, [{"role": "user", "content": prompt}], max_tokens=1000)
         if stats.error:
             return {"judge_error": f"{stats.error}: {stats.error_detail}"}
         data = _parse_json(stats.text)

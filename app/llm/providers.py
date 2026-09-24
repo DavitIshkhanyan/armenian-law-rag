@@ -74,8 +74,9 @@ PACER = Pacer()
 
 def estimate_tokens(messages: list[dict], max_tokens: int) -> int:
     # Armenian script costs roughly 2-3x more tokens per character than English; ~2.5 chars/token
-    # is a conservative estimate across both, plus a typical answer length.
-    return sum(len(m["content"]) for m in messages) * 2 // 5 + min(max_tokens, 600)
+    # is a conservative estimate across both. Groq counts the full max_tokens reservation against the
+    # per-minute budget, so it is included in full.
+    return sum(len(m["content"]) for m in messages) * 2 // 5 + max_tokens
 
 
 def _client(spec: ModelSpec) -> OpenAI:
@@ -148,7 +149,8 @@ def stream_chat(model_key: str, messages: list[dict], stats: CallStats | None = 
                 stats.total_s = time.perf_counter() - start
                 break
             stats.retries += 1
-            time.sleep(min(2 ** attempt * 5, 30))  # backoff for rate limits / timeouts
+            # Backoff; a per-minute token window needs up to a minute to clear.
+            time.sleep(min(2 ** attempt * 10, 60) if stats.error == "rate_limit" else min(2 ** attempt * 5, 30))
 
     if stats.text and (stats.prompt_tokens is None or stats.completion_tokens is None):
         # Rough fallback (~4 chars/token); flagged so the report can exclude or caveat it.
