@@ -64,7 +64,7 @@ button, select, input, textarea { font: inherit; color: inherit; }
 .topbar { display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap;
   padding: 14px clamp(16px, 3vw, 40px); background: var(--surface); border-bottom: 1px solid var(--rule); }
 .brand { display: flex; flex-direction: column; }
-.brand-title { font: 600 var(--step-1)/1.2 var(--serif); }
+.brand-title { font: 600 var(--step-1)/1.25 var(--serif); letter-spacing: 0.005em; }
 .brand-sub { font-size: var(--step--1); color: var(--muted); }
 .tabs { display: flex; gap: 4px; background: var(--paper); padding: 3px; border-radius: 8px; }
 .tab { border: 0; background: transparent; padding: 6px 16px; border-radius: 6px; cursor: pointer; color: var(--muted); font-weight: 500; }
@@ -99,12 +99,13 @@ main { padding: 24px clamp(16px, 3vw, 40px) 64px; }
 .ex:hover { border-style: solid; border-color: var(--stamp); background: var(--surface); }
 
 /* Answer */
-.answer { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 20px 22px; }
+.answer { padding: 4px 2px 0; border-top: 2px solid var(--ink); padding-top: 14px; }
 .answer-status { font-size: var(--step--1); color: var(--muted); margin-bottom: 10px; min-height: 1.2em; }
 .answer-text { white-space: pre-wrap; font-size: var(--step-1); line-height: 1.6; max-width: 72ch; }
 .answer-text.streaming::after { content: ""; display: inline-block; width: .5em; height: 1.1em; margin-left: 2px; vertical-align: text-bottom; background: var(--stamp); animation: blink 1s steps(2) infinite; }
 @keyframes blink { 50% { opacity: 0; } }
-.answer.refusal { border-color: var(--partial); background: var(--refusal-bg); }
+.answer.refusal { border-top-color: var(--partial); }
+.answer.refusal .answer-text { color: var(--muted); }
 .cite { display: inline; border: 0; padding: 0 4px; margin: 0 1px; border-radius: 4px; background: var(--stamp-soft); color: var(--stamp); font: 500 0.85em/1.4 var(--sans); word-spacing: 0.2em; cursor: pointer; white-space: nowrap; }
 .cite:hover { background: var(--stamp); color: var(--surface); }
 .cite.bad { background: var(--warn-soft); color: var(--warn); }
@@ -113,26 +114,28 @@ main { padding: 24px clamp(16px, 3vw, 40px) 64px; }
 .stats { margin: 12px 0 0; padding-top: 12px; border-top: 1px solid var(--rule); font-size: var(--step--1); color: var(--muted); }
 .error-box { margin-top: 10px; padding: 10px 12px; border-radius: 6px; background: var(--warn-soft); color: var(--warn); font-size: var(--step--1); }
 
-/* Law column: the statute pane */
-.col-law { position: sticky; top: 16px; max-height: calc(100vh - 32px); display: flex; flex-direction: column;
-  background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; min-width: 0; }
-.law-head { padding: 16px 20px 12px; border-bottom: 1px solid var(--rule); }
-.sources:empty { min-height: 0; }
+/* Law column: the statute sheet. Numerals hang in a left margin, as in a printed code. */
+.col-law { --margin: 76px; position: sticky; top: 16px; max-height: calc(100vh - 32px); display: flex; flex-direction: column;
+  background: var(--surface); border: 1px solid var(--rule); border-radius: 2px; min-width: 0;
+  box-shadow: 0 1px 0 var(--rule), 0 12px 28px -18px rgba(27, 34, 48, .35); }
+.law-head { padding: 18px 22px 14px var(--margin); border-bottom: 1px solid var(--rule); }
 .law-head h2 { font: 600 var(--step-1)/1.3 var(--serif); }
-.law-meta { margin: 4px 0 0; font-size: var(--step--1); color: var(--muted); }
-.sources { overflow-y: auto; position: relative; }
-.sources:empty::before { content: "No question asked yet."; display: block; padding: 20px; color: var(--muted); font-size: var(--step--1); }
-.statute { padding: 16px 20px 16px 17px; border-left: 3px solid transparent; border-bottom: 1px solid var(--rule); }
+.law-meta { margin: 4px 0 0; font-size: var(--step--1); color: var(--muted); max-width: 60ch; }
+.sources { overflow-y: auto; position: relative;
+  background: linear-gradient(var(--rule), var(--rule)) calc(var(--margin) - 14px) 0 / 1px 100% no-repeat; }
+.sources:empty::before { content: "No question asked yet."; display: block; padding: 20px 22px 24px var(--margin); color: var(--muted); font-size: var(--step--1); }
+.statute { display: grid; grid-template-columns: var(--margin) minmax(0, 1fr); padding: 18px 22px 18px 0; border-bottom: 1px solid var(--rule); }
 .statute:last-child { border-bottom: 0; }
-.statute.cited { border-left-color: var(--stamp); }
 .statute.flash { background: var(--stamp-soft); transition: background .6s; }
-.statute-head { display: grid; grid-template-columns: auto 1fr; column-gap: 14px; align-items: baseline; cursor: pointer; }
-.statute-num { font: 600 var(--step-3)/1 var(--serif); color: var(--ink); font-variant-numeric: lining-nums; }
+.statute-num { padding-right: 26px; text-align: right; font: 600 var(--step-3)/1 var(--serif); color: var(--muted); font-variant-numeric: lining-nums; }
 .statute.cited .statute-num { color: var(--stamp); }
+.statute-main { min-width: 0; }
+.statute-head { display: flex; flex-direction: column; gap: 2px; cursor: pointer; padding-top: 3px; }
 .statute-title { font: 600 var(--step-0)/1.35 var(--serif); }
-.statute-tags { grid-column: 2; font-size: var(--step--1); color: var(--muted); margin-top: 2px; }
+.statute-tags { font-size: var(--step--1); color: var(--muted); display: flex; gap: 10px; flex-wrap: wrap; }
+.statute-tags:empty { display: none; }
 .statute-tags .tag-cited { color: var(--stamp); font-weight: 500; }
-.statute-body { margin-top: 10px; font: 400 0.95rem/1.7 var(--serif); white-space: pre-wrap; max-width: 75ch; }
+.statute-body { margin-top: 10px; font: 400 0.95rem/1.72 var(--serif); white-space: pre-wrap; max-width: 75ch; }
 .statute:not(.open) .statute-body { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; color: var(--muted); }
 .statute-toggle { margin-top: 6px; border: 0; background: none; padding: 0; color: var(--stamp); font-size: var(--step--1); cursor: pointer; }
 .law-empty { padding: 20px; color: var(--muted); font-size: var(--step--1); }
@@ -182,6 +185,8 @@ table.data td.sub { padding-left: 24px; }
 
 @media (max-width: 960px) {
   .ask-layout { grid-template-columns: 1fr; }
+  .col-law { --margin: 56px; }
+  .statute-num { font-size: var(--step-2); padding-right: 18px; }
   .col-law { position: static; max-height: none; }
   .btn-primary { margin-left: 0; }
   .runs-field { margin-left: 0; }

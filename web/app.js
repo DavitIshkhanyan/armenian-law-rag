@@ -73,17 +73,19 @@ function renderSources(ev) {
   if (!ev.articles.length) { $("#sources").innerHTML = `<p class="law-empty">No articles were retrieved.</p>`; return; }
   $("#sources").innerHTML = ev.articles.map((a) => `
     <section class="statute" id="src-${esc(a.number)}" lang="${a.lang}">
-      <div class="statute-head" data-toggle>
-        <span class="statute-num">${esc(a.number)}</span>
-        <span class="statute-title">${esc(a.title)}</span>
-        <span class="statute-tags">${[
-          a.lang !== ev.lang ? (a.lang === "en" ? "English text only" : "Armenian text only") : "",
-          a.partial ? "Excerpt" : "",
-          `<span class="tag-cited" hidden>Cited in the answer</span>`,
-        ].filter(Boolean).join(" ")}</span>
+      <div class="statute-num" aria-label="${a.lang === "hy" ? "Հոդված" : "Article"} ${esc(a.number)}">${esc(a.number)}</div>
+      <div class="statute-main">
+        <div class="statute-head" data-toggle>
+          <span class="statute-title">${esc(a.title)}</span>
+          <span class="statute-tags">${[
+            `<span class="tag-cited" hidden>Cited in the answer</span>`,
+            a.lang !== ev.lang ? (a.lang === "en" ? "English text only" : "Armenian text only") : "",
+            a.partial ? "Excerpt" : "",
+          ].filter(Boolean).join(" ")}</span>
+        </div>
+        <div class="statute-body">${esc(a.text)}</div>
+        <button type="button" class="statute-toggle" data-toggle>Show full text</button>
       </div>
-      <div class="statute-body">${esc(a.text)}</div>
-      <button type="button" class="statute-toggle" data-toggle>Show full text</button>
     </section>`).join("");
 }
 
