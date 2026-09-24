@@ -127,7 +127,9 @@ def stream_chat(model_key: str, messages: list[dict], stats: CallStats | None = 
                     stats.completion_tokens = max(u.completion_tokens or 0, billed or 0)
                     details = getattr(u, "completion_tokens_details", None)
                     visible_gap = stats.completion_tokens - (u.completion_tokens or 0)
-                    stats.reasoning_tokens = (getattr(details, "reasoning_tokens", None) if details else None) or (visible_gap or None)
+                    reported = (getattr(details, "reasoning_tokens", None) if details else None) or (visible_gap or None)
+                    # OpenRouter's streamed reasoning count can exceed the billed output; cap it there.
+                    stats.reasoning_tokens = min(reported, stats.completion_tokens) if reported else None
                 if chunk.choices and chunk.choices[0].finish_reason:
                     stats.finish_reason = chunk.choices[0].finish_reason
                 if chunk.choices and chunk.choices[0].delta and chunk.choices[0].delta.content:

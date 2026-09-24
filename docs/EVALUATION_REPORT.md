@@ -189,6 +189,7 @@ accuracy, refusals, latency, tokens, cost and failures are computed without an L
 | Gemini answers cut off by hidden thinking tokens; thinking tokens not counted | Same reasoning effort for all, output limit 4,096, billed output = total − prompt; **whole benchmark re-run** |
 | Citation parser read `49(2)(1)` and `49(2)1` as articles 49, 2, 1 | Parser fixed with regression tests; citation metrics recomputed from saved answers |
 | Judge context capped by characters, which cut cited articles and caused one false hallucination flag | Cited articles first, truncate instead of drop; affected question re-judged |
+| OpenRouter's streamed reasoning-token count sometimes exceeded the billed output tokens | Reasoning tokens are reported capped at billed output; cost uses billed output only |
 | Judge requests exceeded Groq's per-minute and per-day token limits | Pacing counts the full `max_tokens` reservation; failed judgments re-run with `--rescore --failed-only`, never re-rolling finished ones |
 
 **Manual review.** I read every answer that scored below 1 (21 answers, which include both hallucination flags). The

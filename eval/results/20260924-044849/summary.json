@@ -82,7 +82,7 @@
   "total_p95_s": 17.766,
   "prompt_tokens_avg": 3030.4762,
   "completion_tokens_avg": 447.2857,
-  "reasoning_tokens_avg": 497.9048,
+  "reasoning_tokens_avg": 422,
   "tokens_total": 73033,
   "usage_estimated": 0,
   "cost_usd_total": 0.00932,

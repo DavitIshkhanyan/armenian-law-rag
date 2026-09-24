@@ -192,7 +192,8 @@ def summarize(rows: list[dict], models: list[str]) -> list[dict]:
             "total_p95_s": _pct([x["total_s"] for x in ok], 95),
             "prompt_tokens_avg": _mean([x["prompt_tokens"] for x in ok]),
             "completion_tokens_avg": _mean([x["completion_tokens"] for x in ok]),
-            "reasoning_tokens_avg": _mean([x.get("reasoning_tokens") or 0 for x in ok]),
+            # Capped at billed output: OpenRouter's streamed reasoning counts can exceed it.
+            "reasoning_tokens_avg": _mean([min(x.get("reasoning_tokens") or 0, x["completion_tokens"] or 0) for x in ok]),
             "tokens_total": sum((x["prompt_tokens"] or 0) + (x["completion_tokens"] or 0) for x in ok),
             "usage_estimated": sum(1 for x in ok if x["usage_estimated"]),
             "cost_usd_total": round(sum(x["cost_usd"] or 0 for x in r), 5),
