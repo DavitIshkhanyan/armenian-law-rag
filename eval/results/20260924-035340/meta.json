@@ -1,0 +1,9 @@
+{
+ "judge_model": "qwen/qwen3.8-27b",
+ "models": {
+  "gemini-flash": "gemini-3.8-flash",
+  "gpt-oss-120b": "openai/gpt-oss-120b",
+  "nemotron-3-super": "nvidia/nemotron-3-super-120b-a12b:free"
+ },
+ "finished": "2026-09-24T04:47:05"
+}
