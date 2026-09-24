@@ -195,7 +195,8 @@ def summarize(rows: list[dict], models: list[str]) -> list[dict]:
             "tokens_total": sum((x["prompt_tokens"] or 0) + (x["completion_tokens"] or 0) for x in ok),
             "usage_estimated": sum(1 for x in ok if x["usage_estimated"]),
             "cost_usd_total": round(sum(x["cost_usd"] or 0 for x in r), 5),
-            "cost_usd_per_1k_questions": round(1000 * (_mean([x["cost_usd"] for x in ok]) or 0), 3),
+            "cost_usd_per_1k_questions": (round(1000 * statistics.mean(x["cost_usd"] for x in ok if x["cost_usd"] is not None), 3)
+                                          if any(x["cost_usd"] is not None for x in ok) else None),
             "failure_rate": round(1 - len(ok) / len(r), 4),
             "failures": failures,
             "retries": sum(x["retries"] for x in r),
@@ -242,8 +243,13 @@ def main() -> None:
     ap.add_argument("--limit", type=int)
     ap.add_argument("--rescore", type=Path)
     ap.add_argument("--only", nargs="*", help="with --rescore: question ids to re-judge")
+    ap.add_argument("--summarize", type=Path, help="rebuild summary.json/csv of a run from raw.jsonl")
     args = ap.parse_args()
-    if args.rescore:
+    if args.summarize:
+        rows = [json.loads(line) for line in (args.summarize / "raw.jsonl").read_text(encoding="utf-8").splitlines()]
+        summary = summarize(rows, list(dict.fromkeys(r["model"] for r in rows)))
+        write_summary(args.summarize, summary)
+    elif args.rescore:
         summary = rescore(args.rescore, args.only)
     else:
         t0 = time.time()

@@ -196,3 +196,6 @@ table.data td.sub { padding-left: 24px; }
   .statute.flash { transition: none; }
   * { scroll-behavior: auto !important; }
 }
+
+#benchSummary table.data { max-width: 1000px; }
+#benchSummary table.data td:first-child { width: 38%; }
