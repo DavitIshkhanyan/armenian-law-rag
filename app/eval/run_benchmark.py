@@ -249,7 +249,18 @@ def main() -> None:
     ap.add_argument("--summarize", type=Path, help="rebuild summary.json/csv of a run from raw.jsonl")
     args = ap.parse_args()
     if args.summarize:
-        rows = [json.loads(line) for line in (args.summarize / "raw.jsonl").read_text(encoding="utf-8").splitlines()]
+        # Re-derive the deterministic citation fields from the saved answers (e.g. after a citation
+        # parser fix); judge scores are left untouched.
+        qs = {q["id"]: q for q in load_questions()}
+        rows = []
+        for r in map(json.loads, (args.summarize / "raw.jsonl").read_text(encoding="utf-8").splitlines()):
+            cited = parse_citations(r["answer"])
+            r |= {"citations": cited,
+                  "cited_not_retrieved": [a for a in cited if a not in r["retrieved_articles"]],
+                  "refusal": is_refusal(r["answer"])} | citation_scores(cited, qs[r["qid"]])
+            rows.append(r)
+        (args.summarize / "raw.jsonl").write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows),
+                                                  encoding="utf-8")
         summary = summarize(rows, list(dict.fromkeys(r["model"] for r in rows)))
         write_summary(args.summarize, summary)
     elif args.rescore:

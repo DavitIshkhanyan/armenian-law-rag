@@ -33,7 +33,8 @@ def build_messages(question: str, context: str) -> list[dict]:
 
 CITATION_RE = re.compile(r"\[\s*(?:Article|Art\.|Հոդված|Հոդ\.)\s*([^\]]+)\]", re.IGNORECASE)
 NUM_RE = re.compile(r"\d{1,2}(?:\.\d)?")
-PAREN_RE = re.compile(r"\([^)]*\)")  # part / point markers: 49(2)(1)
+# Part / point markers: 49(2)(1), and the unbracketed variants some models write: 49(2)1, 57(2)2).
+PAREN_RE = re.compile(r"\([^)]*\)(?:\s*\d+\)?)?")
 
 
 def parse_citations(answer: str) -> list[str]:

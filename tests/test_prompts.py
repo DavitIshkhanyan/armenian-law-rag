@@ -13,3 +13,7 @@ def test_refusal_detection_both_languages():
     assert is_refusal("The provided articles of the Law do not address this question.")
     assert is_refusal("Օրենքի տրամադրված հոդվածները չեն անդրադառնում այս հարցին։")
     assert not is_refusal("Yes, within 30 days [Article 57].")
+
+
+def test_citations_ignore_unbracketed_points():
+    assert parse_citations("[Հոդված 49(2)1] [Հոդված 57(2)2)] [Article 12(2)(3-4)]") == ["49", "57", "12"]
